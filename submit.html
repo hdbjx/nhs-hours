@@ -144,6 +144,26 @@
   .field input:focus,.field textarea:focus{outline:2px solid var(--blue);outline-offset:1px;background:#fff;}
   .field textarea{resize:vertical;min-height:90px;}
   .field .hint{font-size:.76rem;color:var(--ink-faint);}
+  .field input[readonly]{background:rgba(74,18,40,.05);color:var(--ink-soft);cursor:not-allowed;}
+  .link-btn{background:none;border:none;padding:0;color:var(--blue);font-weight:700;font-size:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:2px;}
+
+  /* ---------- sign-in gate ---------- */
+  .login-row{display:flex;gap:12px;flex-wrap:wrap;}
+  .login-row input{
+    flex:1;min-width:200px;
+    font-family:'Spline Sans Mono',monospace;font-size:1rem;font-weight:500;
+    padding:13px 18px;border-radius:14px;
+    border:1px solid var(--glass-light-border);
+    background:rgba(255,255,255,.75);
+    box-shadow:inset 0 1px 2px rgba(11,42,74,.06);
+    color:var(--ink);letter-spacing:.06em;
+  }
+  .login-row input:focus{outline:2px solid var(--blue);outline-offset:1px;background:#fff;}
+  .login-error{
+    display:none;margin-top:14px;font-size:.85rem;font-weight:600;color:var(--red);
+    background:rgba(179,56,63,.08);border:1px solid rgba(179,56,63,.25);
+    padding:11px 16px;border-radius:12px;
+  }
   .field input.mono{font-family:'Spline Sans Mono',monospace;letter-spacing:.05em;}
 
   .photo-drop{
@@ -219,7 +239,24 @@
 
 <main>
 
-  <section id="submit">
+  <!-- ============ SIGN-IN GATE ============ -->
+  <section id="loginGate">
+    <div class="section-head">
+      <h2>Sign in to submit hours</h2>
+      <p>NHS is members-only, so verify your student number before logging service hours.</p>
+    </div>
+    <div class="card">
+      <div class="login-row">
+        <input type="text" id="gateStudentNumber" inputmode="numeric" autocomplete="off" maxlength="12"
+               placeholder="Student number" aria-label="Student number"
+               onkeydown="if(event.key==='Enter')gateLogin()">
+        <button class="btn btn-navy" id="gateLoginBtn" onclick="gateLogin()">Sign in</button>
+      </div>
+      <div class="login-error" id="gateLoginError"></div>
+    </div>
+  </section>
+
+  <section id="submit" style="display:none">
     <div class="section-head">
       <h2>Submit hours</h2>
       <span class="tag">Reviewed by an officer</span>
@@ -229,7 +266,8 @@
       <div class="submit-grid">
         <div class="field">
           <label for="subStudentNumber">Student number</label>
-          <input type="text" id="subStudentNumber" class="mono" inputmode="numeric" autocomplete="off" placeholder="e.g. 123456">
+          <input type="text" id="subStudentNumber" class="mono" inputmode="numeric" autocomplete="off" readonly>
+          <span class="hint">Locked to your verified sign-in — <button type="button" class="link-btn" onclick="gateSignOut()">not you?</button></span>
         </div>
         <div class="field">
           <label for="subHours">Hours served</label>
@@ -293,7 +331,7 @@
 
 <footer>
   <div class="motto">Scholarship · Service · Leadership · Character</div>
-  <div>NHS service hours are due by the end of each semester. Questions? Talk to an NHS officer or your adviser.</div>
+  <div>NHS service hours are due by the end of the school year. Questions? Talk to an NHS officer or your adviser.</div>
   <div class="sponsor">Sponsored by <a href="https://everydetail.co" target="_blank" rel="noopener">Every Detail</a></div>
 </footer>
 
@@ -302,7 +340,7 @@
    CONFIG — same Apps Script Web App URL as the other NHS pages.
    Leave blank to preview with demo (no-op) submission behavior.
    ================================================================ */
-const API_URL = "https://script.google.com/macros/s/AKfycbyKO921qNx2eoUqvxByGZ1zbqLZKvW2ZCimIDBYivK1wQxnr686nfGX82zZimAZ4wg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzmlIYbh_Gddsu2agnnKKnvyxofc6p5A2FaYMvAIL3gSLyeUYu0EvH1Lwsx6UEwNE0/exec";
 
 /* ---------------- button loading state ----------------
    Every async button gets a spinner + label, not just disabled text. */
@@ -325,6 +363,41 @@ function clearBtnLoading(btn, label){
    storage in certain privacy modes. */
 function storeGet(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
 function storeSet(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
+function storeRemove(k){ try { localStorage.removeItem(k); } catch(e){} }
+
+/* ---------------- API transport: fetch first, JSONP fallback ----------------
+   Only needed here for the sign-in gate (verifying a student number against
+   the roster) — the actual hours submission still goes through apiPost. */
+let jsonpCounter = 0;
+async function apiCall(params){
+  if (!API_URL) throw new Error("DEMO");
+  const qs = Object.entries(params)
+    .map(([k,v]) => encodeURIComponent(k) + "=" + encodeURIComponent(v ?? ""))
+    .join("&");
+  try {
+    const res = await fetch(API_URL + "?" + qs, { method:"GET", redirect:"follow" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return await res.json();
+  } catch(fetchErr){
+    return jsonpCall(qs);
+  }
+}
+function jsonpCall(qs){
+  return new Promise((resolve, reject) => {
+    const cbName = "nhs_cb_" + (++jsonpCounter) + "_" + Date.now();
+    const cleanup = () => {
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+      clearTimeout(timer);
+    };
+    const timer = setTimeout(() => { cleanup(); reject(new Error("Request timed out. Try again.")); }, 20000);
+    window[cbName] = (data) => { cleanup(); resolve(data); };
+    const script = document.createElement("script");
+    script.src = API_URL + "?" + qs + "&callback=" + cbName;
+    script.onerror = () => { cleanup(); reject(new Error("Couldn't reach the server. Check your connection.")); };
+    document.body.appendChild(script);
+  });
+}
 
 /* ---------------- verification photo ---------------- */
 let photoData = null; // { base64, type, name }
@@ -467,10 +540,63 @@ function todayLocalISO(){
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
 }
 
+/* ---------------- sign-in gate ---------------- */
+async function gateLogin(){
+  const input = document.getElementById("gateStudentNumber");
+  const btn = document.getElementById("gateLoginBtn");
+  const errBox = document.getElementById("gateLoginError");
+  const num = input.value.trim();
+  errBox.style.display = "none";
+
+  if (!num){ showGateError("Enter your student number first."); return; }
+  if (!/^\d{3,12}$/.test(num)){ showGateError("Student numbers are digits only (3–12 characters)."); return; }
+
+  setBtnLoading(btn, "Checking…");
+  try {
+    let data;
+    try {
+      data = await apiCall({ action:"login", studentNumber:num });
+    } catch(e){
+      if (e.message === "DEMO"){ data = { success:true, student:{ name:"Demo Member", studentNumber:num } }; }
+      else throw e;
+    }
+    if (!data.success){ showGateError(data.error || "Student number not found. Check with an officer if you think this is a mistake."); return; }
+    storeSet("nhs_student_number", num);
+    unlockSubmitForm(num);
+  } catch(e){
+    showGateError(e.message);
+  } finally {
+    clearBtnLoading(btn, "Sign in");
+  }
+}
+
+function showGateError(msg){
+  const errBox = document.getElementById("gateLoginError");
+  errBox.textContent = msg;
+  errBox.style.display = "block";
+}
+
+function unlockSubmitForm(num){
+  document.getElementById("loginGate").style.display = "none";
+  document.getElementById("submit").style.display = "block";
+  document.getElementById("subStudentNumber").value = num;
+}
+
+function gateSignOut(){
+  storeRemove("nhs_student_number");
+  document.getElementById("submit").style.display = "none";
+  document.getElementById("loginGate").style.display = "block";
+  document.getElementById("gateStudentNumber").value = "";
+  document.getElementById("subStudentNumber").value = "";
+}
+
 /* ---------------- init ---------------- */
 document.getElementById("subDate").max = todayLocalISO();
 const savedNum = storeGet("nhs_student_number");
-if (savedNum) document.getElementById("subStudentNumber").value = savedNum;
+if (savedNum){
+  document.getElementById("gateStudentNumber").value = savedNum;
+  gateLogin(); // re-verify against the roster rather than trusting stored state blindly
+}
 </script>
 </body>
 </html>
