@@ -9,17 +9,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&family=Spline+Sans+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --navy:#0b2a4a;
-    --navy-2:#123a63;
-    --blue:#1d5c8f;
-    --gold:#c9a227;
-    --gold-bright:#e3ba45;
-    --gold-soft:#e8d9a8;
-    --gold-deep:#8f6f14;
+    --navy:#4a1228;
+    --navy-2:#6b1d3a;
+    --blue:#8a3352;
+    --gold:#b8860b;
+    --gold-bright:#d9a441;
+    --gold-soft:#ecd9a0;
+    --gold-deep:#8a5f10;
     --ink:#16202b;
     --ink-soft:#5b6674;
     --ink-faint:#8b96a3;
-    --glass-light-border:rgba(11,42,74,.12);
+    --glass-light-border:rgba(74,18,40,.12);
     --green:#1e7a49;
     --red:#b3383f;
     --radius:22px;
@@ -28,13 +28,13 @@
   html{scroll-behavior:smooth;}
   body{
     font-family:'Public Sans',system-ui,sans-serif;
-    background:#eef1f6;
+    background:#f5eef0;
     color:var(--ink);
     line-height:1.55;
     -webkit-font-smoothing:antialiased;
     min-height:100vh;
   }
-  ::selection{background:rgba(201,162,39,.35);}
+  ::selection{background:rgba(184,134,11,.35);}
 
   /* ---------- light glass primitives (sit on the host page) ---------- */
   .card, header{
@@ -43,7 +43,7 @@
     backdrop-filter:blur(18px) saturate(150%);
     border:1px solid var(--glass-light-border);
     box-shadow:
-      0 18px 44px -20px rgba(11,42,74,.28),
+      0 18px 44px -20px rgba(74,18,40,.28),
       inset 0 1px 0 rgba(255,255,255,.9);
     position:relative;
   }
@@ -62,9 +62,9 @@
   .brand{display:flex;align-items:center;gap:14px;}
   .brand-key{
     width:46px;height:46px;flex:none;border-radius:50%;
-    background:radial-gradient(circle at 32% 28%, var(--gold-bright), var(--gold) 60%, #a67f1c 100%);
+    background:radial-gradient(circle at 32% 28%, var(--gold-bright), var(--gold) 60%, #8a660f 100%);
     display:grid;place-items:center;
-    box-shadow:0 6px 16px -6px rgba(201,162,39,.6), inset 0 1px 1px rgba(255,255,255,.6), inset 0 -2px 4px rgba(90,60,0,.3);
+    box-shadow:0 6px 16px -6px rgba(184,134,11,.6), inset 0 1px 1px rgba(255,255,255,.6), inset 0 -2px 4px rgba(80,50,5,.3);
   }
   .brand-key svg{display:block;}
   .brand h1{
@@ -78,8 +78,8 @@
     color:var(--ink-soft);text-decoration:none;padding:8px 14px;border-radius:999px;
     transition:color .15s,background .15s;
   }
-  .site-nav a:hover{color:var(--navy);background:rgba(11,42,74,.06);}
-  .site-nav a.active{color:var(--navy);background:rgba(201,162,39,.16);}
+  .site-nav a:hover{color:var(--navy);background:rgba(74,18,40,.06);}
+  .site-nav a.active{color:var(--navy);background:rgba(184,134,11,.16);}
 
   /* ---------- layout ---------- */
   main{max-width:1080px;margin:0 auto;padding:30px 20px 60px;}
@@ -90,8 +90,8 @@
   .section-head .tag{
     font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
     color:var(--gold-deep);
-    background:rgba(201,162,39,.16);
-    border:1px solid rgba(201,162,39,.35);
+    background:rgba(184,134,11,.16);
+    border:1px solid rgba(184,134,11,.35);
     padding:4px 12px;border-radius:999px;
   }
   .section-head p{width:100%;color:var(--ink-soft);font-size:.92rem;max-width:60ch;}
@@ -120,7 +120,7 @@
   .btn-navy{
     background:linear-gradient(160deg, var(--navy-2) 0%, var(--navy) 100%);
     color:#fff;
-    box-shadow:0 10px 24px -10px rgba(11,42,74,.55), inset 0 1px 0 rgba(255,255,255,.25);
+    box-shadow:0 10px 24px -10px rgba(74,18,40,.55), inset 0 1px 0 rgba(255,255,255,.25);
   }
   .btn-navy:hover{filter:brightness(1.15);}
   .btn:disabled{opacity:.55;cursor:wait;}
@@ -137,7 +137,7 @@
     padding:12px 15px;border-radius:12px;
     border:1px solid var(--glass-light-border);
     background:rgba(255,255,255,.75);
-    box-shadow:inset 0 1px 2px rgba(11,42,74,.06);
+    box-shadow:inset 0 1px 2px rgba(74,18,40,.06);
     color:var(--ink);
   }
   .field input::placeholder,.field textarea::placeholder{color:var(--ink-faint);}
@@ -147,7 +147,7 @@
   .field input.mono{font-family:'Spline Sans Mono',monospace;letter-spacing:.05em;}
 
   .photo-drop{
-    border:1.5px dashed rgba(201,162,39,.55);border-radius:14px;
+    border:1.5px dashed rgba(184,134,11,.55);border-radius:14px;
     background:rgba(255,255,255,.55);
     cursor:pointer;transition:border-color .15s,background .15s;overflow:hidden;
   }
@@ -158,7 +158,7 @@
   .photo-empty strong{color:var(--navy);}
   .photo-preview{display:none;align-items:center;gap:14px;padding:10px 14px 10px 10px;}
   .photo-preview img{width:74px;height:74px;object-fit:cover;border-radius:10px;border:1px solid var(--glass-light-border);
-    box-shadow:0 6px 16px -8px rgba(11,42,74,.35);}
+    box-shadow:0 6px 16px -8px rgba(74,18,40,.35);}
   .photo-preview-info{display:flex;flex-direction:column;gap:4px;min-width:0;}
   .photo-preview-info span{font-size:.82rem;color:var(--ink);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:52vw;}
   .photo-remove{align-self:flex-start;background:none;border:none;color:var(--red);font-size:.78rem;font-weight:700;cursor:pointer;padding:2px 0;text-decoration:underline;text-underline-offset:3px;}
@@ -171,14 +171,14 @@
   .form-msg.err{color:var(--red);display:block;}
   .verify-note{
     margin-top:18px;font-size:.82rem;color:var(--ink-soft);
-    background:rgba(201,162,39,.12);
-    border:1px solid rgba(201,162,39,.3);
+    background:rgba(184,134,11,.12);
+    border:1px solid rgba(184,134,11,.3);
     border-radius:12px;padding:13px 17px;
   }
   .verify-note strong{color:var(--gold-deep);}
 
   footer{
-    border-top:1px solid rgba(11,42,74,.12);padding:26px 20px 42px;text-align:center;
+    border-top:1px solid rgba(74,18,40,.12);padding:26px 20px 42px;text-align:center;
     font-size:.8rem;color:var(--ink-soft);
   }
   footer .motto{font-family:'Zilla Slab',serif;font-style:italic;color:var(--navy);font-size:.95rem;margin-bottom:5px;}
@@ -200,8 +200,8 @@
     <div class="brand">
       <div class="brand-key" aria-hidden="true">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <path d="M12 2.5c1.8 2.3 2.8 4.1 2.8 5.5a2.8 2.8 0 0 1-5.6 0c0-1.4 1-3.2 2.8-5.5Z" stroke="#0b2a4a" stroke-width="1.8" stroke-linejoin="round"/>
-          <path d="M9.5 11.5h5l-1.1 8c-.08.59-.58 1-1.16 1h-.48c-.58 0-1.08-.41-1.16-1l-1.1-8Z" stroke="#0b2a4a" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M12 2.5c1.8 2.3 2.8 4.1 2.8 5.5a2.8 2.8 0 0 1-5.6 0c0-1.4 1-3.2 2.8-5.5Z" stroke="#4a1228" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M9.5 11.5h5l-1.1 8c-.08.59-.58 1-1.16 1h-.48c-.58 0-1.08-.41-1.16-1l-1.1-8Z" stroke="#4a1228" stroke-width="1.8" stroke-linejoin="round"/>
         </svg>
       </div>
       <div>
@@ -262,9 +262,9 @@
             <input type="file" id="subPhoto" accept="image/*" hidden onchange="handlePhoto(this)">
             <div class="photo-empty" id="photoEmpty">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <rect x="3" y="6" width="18" height="14" rx="2.5" stroke="#0b2a4a" stroke-width="1.8"/>
-                <path d="M8.5 6 L10 3.5 H14 L15.5 6" stroke="#0b2a4a" stroke-width="1.8" stroke-linejoin="round"/>
-                <circle cx="12" cy="13" r="3.5" stroke="#0b2a4a" stroke-width="1.8"/>
+                <rect x="3" y="6" width="18" height="14" rx="2.5" stroke="#4a1228" stroke-width="1.8"/>
+                <path d="M8.5 6 L10 3.5 H14 L15.5 6" stroke="#4a1228" stroke-width="1.8" stroke-linejoin="round"/>
+                <circle cx="12" cy="13" r="3.5" stroke="#4a1228" stroke-width="1.8"/>
               </svg>
               <span><strong>Tap to add a photo</strong> — you at the event, a sign-in sheet, or a signed form</span>
             </div>
