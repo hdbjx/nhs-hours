@@ -375,14 +375,14 @@
       <div class="bar"><i id="annualGoalBar" style="width:0%"></i></div>
     </div>
     <div id="loginView">
-      <div class="eyebrow">Member check-in</div>
-      <h2>How close are you to your goal?</h2>
-      <p>Enter your student number to see your approved hours, anything still pending review, and your full submission history for this semester.</p>
+      <div class="eyebrow">Member sign-in</div>
+      <h2>Sign in to continue</h2>
+      <p>Enter your student number to see your hours, opportunities, and submission history. NHS is members-only, so this page stays locked until you sign in.</p>
       <div class="login-row">
         <input type="text" id="studentNumberInput" inputmode="numeric" autocomplete="off" maxlength="12"
                placeholder="Student number" aria-label="Student number"
                onkeydown="if(event.key==='Enter')login()">
-        <button class="btn btn-gold" id="loginBtn" onclick="login()">View my hours</button>
+        <button class="btn btn-gold" id="loginBtn" onclick="login()">Sign in</button>
       </div>
       <div class="login-error" id="loginError"></div>
     </div>
@@ -397,7 +397,7 @@
       </div>
 
       <div class="punch-card">
-        <div class="punch-label" id="punchLabel">Semester service record</div>
+        <div class="punch-label" id="punchLabel">Year service record</div>
         <div class="keys-row" id="keysRow"></div>
       </div>
 
@@ -440,7 +440,7 @@
   </div>
 
   <!-- ============ OPPORTUNITIES ============ -->
-  <section id="opportunities">
+  <section id="opportunities" style="display:none">
     <div class="section-head">
       <h2>Volunteer opportunities</h2>
       <span class="tag">Updated by officers</span>
@@ -455,7 +455,7 @@
 
 <footer>
   <div class="motto">Scholarship · Service · Leadership · Character</div>
-  <div>NHS service hours are due by the end of each semester. Questions? Talk to an NHS officer or your adviser.</div>
+  <div>NHS service hours are due by the end of the school year. Questions? Talk to an NHS officer or your adviser.</div>
   <div class="sponsor">Sponsored by <a href="https://everydetail.co" target="_blank" rel="noopener">Every Detail</a></div>
 </footer>
 
@@ -464,7 +464,7 @@
    CONFIG — paste your Apps Script Web App URL between the quotes.
    Leave blank to preview the page with demo data.
    ================================================================ */
-const API_URL = "https://script.google.com/macros/s/AKfycbyKO921qNx2eoUqvxByGZ1zbqLZKvW2ZCimIDBYivK1wQxnr686nfGX82zZimAZ4wg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzmlIYbh_Gddsu2agnnKKnvyxofc6p5A2FaYMvAIL3gSLyeUYu0EvH1Lwsx6UEwNE0/exec";
 
 const HOURS_GOAL_FALLBACK = 10;
 
@@ -573,10 +573,11 @@ async function login(){
     currentStudent = data;
     storeSet("nhs_student_number", num);
     renderProgress(data);
+    unlockSite();
   } catch(e){
     showLoginError(e.message);
   } finally {
-    clearBtnLoading(btn, "View my hours");
+    clearBtnLoading(btn, "Sign in");
   }
 }
 
@@ -599,7 +600,7 @@ function renderProgress(data){
   document.getElementById("progressView").style.display = "block";
   document.getElementById("memberName").textContent = data.student.name;
   document.getElementById("memberNumber").textContent = "#" + data.student.studentNumber;
-  document.getElementById("punchLabel").textContent = data.semesterLabel ? (data.semesterLabel + " service record") : "Semester service record";
+  document.getElementById("punchLabel").textContent = data.yearLabel ? (data.yearLabel + " service record") : "Year service record";
 
   /* punch card of keys — slots past the base goal are makeup hours (red) */
   const row = document.getElementById("keysRow");
@@ -656,7 +657,7 @@ function renderProgress(data){
   } else if (approved + pending >= effectiveGoal){
     note.innerHTML = "You're at the goal <strong>once your pending hours are approved</strong>. Keep an eye on your history below.";
   } else {
-    note.innerHTML = "You need <strong>" + fmtHrs(remaining) + " more approved " + (remaining === 1 ? "hour" : "hours") + "</strong> this semester. Check the opportunities below.";
+    note.innerHTML = "You need <strong>" + fmtHrs(remaining) + " more approved " + (remaining === 1 ? "hour" : "hours") + "</strong> this year. Check the opportunities below.";
   }
   if (owed > 0){
     note.innerHTML += " <strong>" + fmtHrs(owed) + " " + (owed === 1 ? "hour" : "hours") + "</strong> of that is a makeup requirement from a missed meeting.";
@@ -689,6 +690,24 @@ function signOut(){
   document.getElementById("progressView").style.display = "none";
   document.getElementById("loginView").style.display = "block";
   document.getElementById("studentNumberInput").value = "";
+  lockSite();
+}
+
+/* The whole site is members-only — opportunities (and the annual goal
+   banner inside loadOpportunities) only load and render once a student
+   number has actually been verified against the roster. */
+let opportunitiesLoaded = false;
+function unlockSite(){
+  document.getElementById("opportunities").style.display = "block";
+  if (!opportunitiesLoaded){
+    opportunitiesLoaded = true;
+    loadOpportunities();
+  }
+}
+function lockSite(){
+  document.getElementById("opportunities").style.display = "none";
+  document.getElementById("annualGoalProgress").style.display = "none";
+  opportunitiesLoaded = false;
 }
 
 /* ---------------- opportunities ---------------- */
@@ -758,10 +777,10 @@ function fmtDate(d){
 }
 
 /* ---------------- init ---------------- */
-loadOpportunities();
 const savedNum = storeGet("nhs_student_number");
 if (savedNum){
   document.getElementById("studentNumberInput").value = savedNum;
+  login(); // re-verify against the roster rather than trusting stored state blindly
 }
 </script>
 </body>
