@@ -67,7 +67,7 @@
   }
   .site-nav a:hover{color:var(--navy);background:rgba(74,18,40,.06);}
   .site-nav a.active{color:var(--navy);background:rgba(184,134,11,.16);}
-  .semester-chip{display:none;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  .year-chip{display:none;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
     color:var(--gold-deep);background:rgba(184,134,11,.16);border:1px solid rgba(184,134,11,.35);padding:5px 12px;border-radius:999px;}
   .lock-btn{display:none;background:rgba(255,255,255,.5);border:1px solid var(--glass-light-border);color:var(--ink-soft);font-size:.78rem;font-weight:700;padding:7px 14px;border-radius:999px;cursor:pointer;}
   .lock-btn:hover{color:var(--navy);border-color:var(--navy);}
@@ -227,6 +227,28 @@
   .f input:focus,.f textarea:focus{outline:2px solid var(--blue);outline-offset:1px;background:#fff;}
   .f textarea{resize:vertical;min-height:70px;}
   .f-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+  .bulk-add-details{margin-top:16px;border-top:1px solid var(--glass-light-border);padding-top:14px;}
+  .bulk-add-details summary{
+    cursor:pointer;font-size:.85rem;font-weight:700;color:var(--blue);list-style:none;
+  }
+  .bulk-add-details summary::-webkit-details-marker{display:none;}
+  .bulk-add-details summary::before{content:"+ ";color:var(--blue);}
+  .bulk-add-details[open] summary::before{content:"– ";}
+  #bulkAddText{
+    width:100%;font-family:'Spline Sans Mono',monospace;font-size:.85rem;line-height:1.5;
+    padding:10px 13px;border-radius:12px;border:1px solid var(--glass-light-border);
+    background:rgba(255,255,255,.75);box-shadow:inset 0 1px 2px rgba(11,42,74,.06);
+    color:var(--ink);resize:vertical;min-height:110px;
+  }
+  #bulkAddText:focus{outline:2px solid var(--blue);outline-offset:1px;background:#fff;}
+  #bulkAddResults{margin-top:12px;font-size:.83rem;}
+  #bulkAddResults .added-line{color:var(--green);font-weight:600;margin-bottom:8px;}
+  #bulkAddResults .skip-row{
+    display:flex;justify-content:space-between;gap:10px;padding:6px 10px;
+    border-radius:8px;background:rgba(179,56,63,.08);color:var(--red);margin-bottom:4px;
+  }
+  #bulkAddResults .skip-row span:last-child{color:var(--ink-soft);font-weight:500;}
   .opp-msg{font-size:.85rem;font-weight:600;margin-top:10px;display:none;}
   .opp-msg.ok{display:block;color:var(--green);}
   .opp-msg.err{display:block;color:var(--red);}
@@ -365,7 +387,7 @@
         <a href="submit.html">Submit Hours</a>
         <a href="officer.html" class="active">Officer HQ</a>
       </nav>
-      <span class="semester-chip" id="semesterChip"></span>
+      <span class="year-chip" id="yearChip"></span>
       <button class="lock-btn" id="lockBtn" onclick="lock()">Lock</button>
     </div>
   </div>
@@ -469,6 +491,19 @@
         <div class="f"><label>School email</label><input id="amEmail" type="email" maxlength="100" autocomplete="email" placeholder="student@school.org"></div>
         <button class="btn btn-navy" id="amBtn" onclick="addMember()">Add member</button>
         <div class="opp-msg" id="amMsg"></div>
+
+        <details class="bulk-add-details">
+          <summary>Add many at once (e.g. right after induction)</summary>
+          <p style="font-size:.82rem;color:var(--ink-faint);margin:12px 0 10px;">
+            One student per line: <b>First, Last, Student ID, Grade, Email</b> — separate fields
+            with commas, or paste straight from a spreadsheet (tab-separated works too).
+            Grade must be 11 or 12.
+          </p>
+          <textarea id="bulkAddText" rows="6" placeholder="Jane, Doe, 123456, 11, jane.doe@school.org&#10;John, Smith, 234567, 12, john.smith@school.org"></textarea>
+          <button class="btn btn-navy btn-sm" id="bulkAddBtn" onclick="bulkAddMembers()" style="margin-top:10px;">Add all</button>
+          <div class="opp-msg" id="bulkAddMsg"></div>
+          <div id="bulkAddResults"></div>
+        </details>
       </div>
       <div class="filter-row">
         <input type="text" id="rosterSearch" placeholder="Search members…" oninput="renderRoster()">
@@ -550,7 +585,7 @@
     <div class="tab-panel" id="tab-settings">
       <div class="opps-layout">
         <div class="panel">
-          <h3>Per-grade semester goal</h3>
+          <h3>Per-grade goal for the year</h3>
           <p style="font-size:.82rem;color:var(--ink-faint);margin-bottom:14px;">
             NHS juniors and seniors often have different hour requirements — unlike a flat
             club-wide number, each member's punch card and roster progress uses their own
@@ -622,7 +657,7 @@
 /* ================================================================
    CONFIG — same Web App URL as the member dashboard.
    ================================================================ */
-const API_URL = "https://script.google.com/macros/s/AKfycbyKO921qNx2eoUqvxByGZ1zbqLZKvW2ZCimIDBYivK1wQxnr686nfGX82zZimAZ4wg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzmlIYbh_Gddsu2agnnKKnvyxofc6p5A2FaYMvAIL3gSLyeUYu0EvH1Lwsx6UEwNE0/exec";
 
 const GATE_PROMPT = "Enter the officer PIN to manage hours and opportunities.";
 
@@ -661,6 +696,18 @@ async function apiCall(params){
   } catch(fetchErr){
     return jsonpCall(qs);
   }
+}
+
+/* POST helper — used for bulk-add, where the payload is an array that
+   doesn't fit cleanly (or safely, at scale) into a GET query string. */
+async function apiPost(payload){
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) throw new Error("Request failed (" + res.status + "). Try again.");
+  return res.json();
 }
 
 function jsonpCall(qs){
@@ -718,7 +765,7 @@ function lock(){
   document.getElementById("gate").style.display = "block";
   document.getElementById("gateSub").textContent = GATE_PROMPT;
   document.getElementById("lockBtn").style.display = "none";
-  document.getElementById("semesterChip").style.display = "none";
+  document.getElementById("yearChip").style.display = "none";
   document.getElementById("pinInput").value = "";
 }
 
@@ -742,8 +789,8 @@ function showDashboard(){
   document.getElementById("gate").style.display = "none";
   document.getElementById("dashboard").style.display = "block";
   document.getElementById("lockBtn").style.display = "inline-block";
-  const chip = document.getElementById("semesterChip");
-  if (DATA.semesterLabel){ chip.textContent = DATA.semesterLabel; chip.style.display = "inline-block"; }
+  const chip = document.getElementById("yearChip");
+  if (DATA.yearLabel){ chip.textContent = DATA.yearLabel; chip.style.display = "inline-block"; }
   renderEverything();
 }
 
@@ -787,7 +834,7 @@ function renderQueue(){
     const card = document.createElement("div");
     card.className = "q-card";
     card.id = "q-" + e.row;
-    const outOfSem = e.inSemester ? "" : ' <span class="status-pill denied" title="Service date falls outside the current semester window">Out of semester</span>';
+    const outOfYear = e.inYear ? "" : ' <span class="status-pill denied" title="Service date falls outside the current year window">Out of year</span>';
     card.innerHTML =
       '<div class="q-check"><input type="checkbox" onchange="toggleSelect(' + e.row + ', this.checked)" aria-label="Select submission"></div>' +
       '<div class="q-main">' +
@@ -795,7 +842,7 @@ function renderQueue(){
           '<span class="q-student">' + esc(e.name) + '<span class="num">#' + esc(e.studentNumber) + '</span></span>' +
           '<span class="q-hours">' + fmtHrs(e.hours) + ' hrs</span>' +
         '</div>' +
-        '<div class="q-event">' + esc(e.event) + ' <span class="date">· ' + esc(fmtDate(e.date)) + outOfSem + '</span></div>' +
+        '<div class="q-event">' + esc(e.event) + ' <span class="date">· ' + esc(fmtDate(e.date)) + outOfYear + '</span></div>' +
         '<div class="q-detail">' +
           '<span><b>Supervisor:</b> ' + esc(e.supervisor || "—") + '</span>' +
           '<span><b>Contact:</b> ' + esc(e.contact || "—") + '</span>' +
@@ -965,7 +1012,7 @@ function applyDecisionLocally(row, decision, note){
     entry.status = decision; entry.note = note;
     DATA.decided.unshift(entry);
     // keep roster + stats roughly in sync without a refetch
-    if (entry.inSemester){
+    if (entry.inYear){
       const m = (DATA.roster || []).find(r => String(r.studentNumber) === String(entry.studentNumber));
       if (m){
         const h = Number(entry.hours) || 0;
@@ -1153,6 +1200,48 @@ async function addMember(){
     msg.className = "opp-msg err"; msg.textContent = e.message;
   } finally {
     clearBtnLoading(btn, "Add member");
+  }
+}
+
+/* Parses "First, Last, ID, Grade, Email" lines (tab- or comma-separated,
+   so a paste straight out of a spreadsheet works too) and adds them all in
+   one locked batch server-side. Rows that fail validation are reported
+   back individually rather than failing the whole paste. */
+async function bulkAddMembers(){
+  const btn = document.getElementById("bulkAddBtn");
+  const msg = document.getElementById("bulkAddMsg");
+  const results = document.getElementById("bulkAddResults");
+  msg.className = "opp-msg";
+  results.innerHTML = "";
+
+  const raw = document.getElementById("bulkAddText").value;
+  const lines = raw.split("\n").map(l => l.trim()).filter(Boolean);
+  if (!lines.length){ msg.className = "opp-msg err"; msg.textContent = "Paste at least one student first."; return; }
+
+  const rows = lines.map(line => {
+    const parts = (line.includes("\t") ? line.split("\t") : line.split(",")).map(p => p.trim());
+    const [firstName, lastName, studentNumber, grade, email] = parts;
+    return { firstName: firstName || "", lastName: lastName || "", studentNumber: studentNumber || "", grade: grade || "", email: email || "" };
+  });
+
+  setBtnLoading(btn, "Adding…");
+  try {
+    const res = await apiPost({ action: "bulkAddMembers", pin: PIN, rows });
+    if (!res.success){ msg.className = "opp-msg err"; msg.textContent = res.error || "Could not add members."; return; }
+
+    const skipped = res.skipped || [];
+    let html = '<div class="added-line">' + res.addedCount + ' of ' + lines.length + ' added.</div>';
+    if (skipped.length){
+      html += skipped.map(s => '<div class="skip-row"><span>' + esc(s.row) + '</span><span>' + esc(s.reason) + '</span></div>').join("");
+    }
+    results.innerHTML = html;
+    msg.className = "opp-msg ok"; msg.textContent = "Done.";
+    document.getElementById("bulkAddText").value = "";
+    loadData();
+  } catch(e){
+    msg.className = "opp-msg err"; msg.textContent = e.message;
+  } finally {
+    clearBtnLoading(btn, "Add all");
   }
 }
 
