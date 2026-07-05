@@ -484,16 +484,16 @@
         </div>
         <div class="f-row">
           <div class="f"><label>Student ID</label><input id="amNum" class="mono" inputmode="numeric" maxlength="12" placeholder="Digits only"></div>
-          <div class="f">
-            <label>Grade</label>
-            <select id="amGrade">
-              <option value="">Select…</option>
-              <option value="11">11th (Junior)</option>
-              <option value="12">12th (Senior)</option>
-            </select>
-          </div>
+          <div class="f"><label>School email</label><input id="amEmail" type="email" maxlength="100" autocomplete="email" placeholder="student@school.org"></div>
         </div>
-        <div class="f"><label>School email</label><input id="amEmail" type="email" maxlength="100" autocomplete="email" placeholder="student@school.org"></div>
+        <div class="f" style="max-width:260px;">
+          <label>Grade</label>
+          <select id="amGrade">
+            <option value="">Select…</option>
+            <option value="11">11th (Junior)</option>
+            <option value="12">12th (Senior)</option>
+          </select>
+        </div>
         <button class="btn btn-navy" id="amBtn" onclick="addMember()">Add member</button>
         <div class="opp-msg" id="amMsg"></div>
 
