@@ -226,11 +226,17 @@
   .panel h3{font-family:'Zilla Slab',serif;color:var(--navy);font-size:1.1rem;margin-bottom:14px;}
   .f{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;min-width:0;}
   .f label{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--navy);}
-  .f input,.f textarea{width:100%;min-width:0;font-family:'Public Sans',sans-serif;font-size:1rem;padding:10px 13px;border-radius:12px;
+  .f input,.f textarea,.f select{width:100%;min-width:0;font-family:'Public Sans',sans-serif;font-size:1rem;padding:10px 13px;border-radius:12px;
     border:none;background:var(--surface);color:var(--ink);
     box-shadow:inset 3px 3px 6px var(--shadow-dark-soft), inset -3px -3px 6px var(--shadow-light);}
-  .f input:focus,.f textarea:focus{outline:2px solid var(--blue);outline-offset:1px;}
+  .f input:focus,.f textarea:focus,.f select:focus{outline:2px solid var(--blue);outline-offset:1px;}
   .f textarea{resize:vertical;min-height:70px;}
+  .f select{
+    appearance:none;-webkit-appearance:none;-moz-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2316202b' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 14px center;background-size:12px;
+    padding-right:36px;cursor:pointer;
+  }
   .f-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 
   .bulk-add-details{margin-top:16px;border-top:1px solid var(--glass-light-border);padding-top:14px;}
@@ -484,7 +490,7 @@
         </div>
         <div class="f-row">
           <div class="f"><label>Student ID</label><input id="amNum" class="mono" inputmode="numeric" maxlength="12" placeholder="Digits only"></div>
-          <div class="f"><label>School email</label><input id="amEmail" type="email" maxlength="100" autocomplete="email" placeholder="student@school.org"></div>
+          <div class="f"><label>School email</label><input id="amEmail" type="email" maxlength="100" autocomplete="email" placeholder="student@csdecatur.net"></div>
         </div>
         <div class="f" style="max-width:260px;">
           <label>Grade</label>
@@ -504,7 +510,7 @@
             with commas, or paste straight from a spreadsheet (tab-separated works too).
             Grade must be 11 or 12.
           </p>
-          <textarea id="bulkAddText" rows="6" placeholder="Jane, Doe, 123456, 11, jane.doe@school.org&#10;John, Smith, 234567, 12, john.smith@school.org"></textarea>
+          <textarea id="bulkAddText" rows="6" placeholder="Jane, Doe, 123456, 11, jane.doe@csdecatur.net&#10;John, Smith, 234567, 12, john.smith@csdecatur.net"></textarea>
           <button class="btn btn-navy btn-sm" id="bulkAddBtn" onclick="bulkAddMembers()" style="margin-top:10px;">Add all</button>
           <div class="opp-msg" id="bulkAddMsg"></div>
           <div id="bulkAddResults"></div>
@@ -662,7 +668,7 @@
 /* ================================================================
    CONFIG — same Web App URL as the member dashboard.
    ================================================================ */
-const API_URL = "https://script.google.com/macros/s/AKfycbwxwh-OF9Q5gmUeOkPGz1k04oOEhrSP8AJxDBeVHR9izyb6KpEnrZ-LYJnVh-nZQDE/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxmvblWXcPMRvEMdaTlpTfsrb4uhwFubeHJ_zj1BumCLI51TOZY88dBvEryxyBB26Y/exec";
 
 const GATE_PROMPT = "Enter the officer PIN to manage hours and opportunities.";
 
@@ -1213,7 +1219,7 @@ async function addMember(){
   if (!payload.firstName || !payload.lastName){ msg.className = "opp-msg err"; msg.textContent = "Enter first and last name."; return; }
   if (!/^\d{3,12}$/.test(payload.studentNumber)){ msg.className = "opp-msg err"; msg.textContent = "Student ID should be digits only."; return; }
   if (!payload.grade){ msg.className = "opp-msg err"; msg.textContent = "Pick a grade."; return; }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)){ msg.className = "opp-msg err"; msg.textContent = "Enter a valid email."; return; }
+  if (!/^[^\s@]+@csdecatur\.net$/i.test(payload.email)){ msg.className = "opp-msg err"; msg.textContent = "Use the student's @csdecatur.net email."; return; }
 
   setBtnLoading(btn, "Adding…");
   try {
