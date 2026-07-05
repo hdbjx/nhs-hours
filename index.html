@@ -308,6 +308,13 @@
   .opp-desc{font-size:.88rem;color:var(--ink);}
   .opp-contact{margin-top:auto;padding-top:11px;border-top:1px solid rgba(74,18,40,.1);font-size:.8rem;color:var(--ink-soft);}
   .opp-contact strong{color:var(--navy);}
+  .cal-btn{
+    margin-top:10px;align-self:flex-start;
+    font-family:'Public Sans',sans-serif;font-weight:700;font-size:.78rem;
+    color:var(--blue);background:none;border:none;cursor:pointer;padding:0;
+    text-decoration:underline;text-underline-offset:3px;
+  }
+  .cal-btn:hover{color:var(--navy);}
   .opps-empty,.opps-loading{grid-column:1/-1;text-align:center;color:var(--ink-soft);padding:40px 20px;font-size:.92rem;}
 
   footer{
@@ -451,7 +458,7 @@
    CONFIG — paste your Apps Script Web App URL between the quotes.
    Leave blank to preview the page with demo data.
    ================================================================ */
-const API_URL = "https://script.google.com/macros/s/AKfycbxmvblWXcPMRvEMdaTlpTfsrb4uhwFubeHJ_zj1BumCLI51TOZY88dBvEryxyBB26Y/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwPdDDJpGsqFOU8mEx133T_5Ru8sSf1NopJ_XqP2erLgg3hvZLHdVGVSanpzPLjksQ/exec";
 
 const HOURS_GOAL_FALLBACK = 10;
 
@@ -521,9 +528,9 @@ const DEMO = {
     { date:"2026-02-21", event:"Elementary school reading buddies", hours:1.5, status:"Pending"  }
   ],
   opportunities: [
-    { title:"Community Food Bank — Saturday Sort", org:"Atlanta Community Food Bank", date:"Sat, Jul 11", time:"9:00 AM – 12:00 PM", location:"732 Joseph E. Lowery Blvd", hours:"3 hrs", description:"Sort and box donated food for distribution. Wear closed-toe shoes.", contact:"Sign up with Ms. Rivera (sponsor)" },
-    { title:"Library Summer Reading Helpers", org:"Decatur Public Library", date:"Weekdays in July", time:"Flexible shifts", location:"Children's wing", hours:"1–2 hrs / shift", description:"Help run the summer reading table: check-ins, prizes, shelving picture books.", contact:"Email volunteer@dekalblibrary.org" },
-    { title:"Senior Center Game Afternoon", org:"Lou Walker Senior Center", date:"Fri, Jul 24", time:"2:00 – 4:30 PM", location:"2538 Panola Rd", hours:"2.5 hrs", description:"Play board games and cards with residents. Great for first-time volunteers.", contact:"Text club president to reserve a spot" }
+    { title:"Community Food Bank — Saturday Sort", org:"Atlanta Community Food Bank", date:"Sat, Jul 11", time:"9:00 AM – 12:00 PM", location:"732 Joseph E. Lowery Blvd", hours:"3 hrs", description:"Sort and box donated food for distribution. Wear closed-toe shoes.", contact:"Sign up with Ms. Rivera (sponsor)", dateISO:"2026-07-11", timeStart:"09:00", timeEnd:"12:00" },
+    { title:"Library Summer Reading Helpers", org:"Decatur Public Library", date:"Weekdays in July", time:"Flexible shifts", location:"Children's wing", hours:"1–2 hrs / shift", description:"Help run the summer reading table: check-ins, prizes, shelving picture books.", contact:"Email volunteer@dekalblibrary.org", dateISO:"", timeStart:"", timeEnd:"" },
+    { title:"Senior Center Game Afternoon", org:"Lou Walker Senior Center", date:"Fri, Jul 24", time:"2:00 – 4:30 PM", location:"2538 Panola Rd", hours:"2.5 hrs", description:"Play board games and cards with residents. Great for first-time volunteers.", contact:"Text club president to reserve a spot", dateISO:"2026-07-24", timeStart:"14:00", timeEnd:"16:30" }
   ]
 };
 
@@ -710,6 +717,7 @@ async function loadOpportunities(){
     if (e.message === "DEMO"){ renderAnnualGoal(DEMO.annualGoal, DEMO.annualApproved); }
   }
   grid.innerHTML = "";
+  CURRENT_OPPS = opps || [];
   if (opps === null){
     grid.innerHTML = '<div class="opps-empty">Couldn\'t load opportunities right now. Refresh to try again.</div>';
     return;
@@ -718,7 +726,7 @@ async function loadOpportunities(){
     grid.innerHTML = '<div class="opps-empty">No opportunities posted yet — check back soon, or ask an officer what\'s coming up.</div>';
     return;
   }
-  opps.forEach(o => {
+  opps.forEach((o, idx) => {
     const card = document.createElement("div");
     card.className = "opp-card";
     card.innerHTML =
@@ -730,9 +738,80 @@ async function loadOpportunities(){
         (o.location ? '<span><span class="k">Where</span>' + esc(o.location) + '</span>' : '') +
       '</div>' +
       (o.description ? '<p class="opp-desc">' + esc(o.description) + '</p>' : '') +
-      (o.contact ? '<div class="opp-contact"><strong>To sign up:</strong> ' + esc(o.contact) + '</div>' : '');
+      (o.contact ? '<div class="opp-contact"><strong>To sign up:</strong> ' + esc(o.contact) + '</div>' : '') +
+      (o.dateISO ? '<button type="button" class="cal-btn" onclick="downloadICS(' + idx + ')">+ Add to calendar</button>' : '');
     grid.appendChild(card);
   });
+}
+
+/* ---------------- add to calendar ---------------- */
+let CURRENT_OPPS = [];
+
+/** Builds a .ics file for one opportunity and triggers a download — every
+   phone/desktop calendar app (Apple, Google, Outlook) knows how to import
+   a downloaded .ics file. Only shown when the backend found a real date
+   (freeform text like "Weekdays in July" has nothing to anchor an event to). */
+function downloadICS(idx){
+  const o = CURRENT_OPPS[idx];
+  if (!o || !o.dateISO) return;
+
+  const dateCompact = o.dateISO.replace(/-/g, "");
+  let dtstart, dtend;
+
+  if (o.timeStart){
+    const [sh, sm] = o.timeStart.split(":").map(Number);
+    dtstart = "DTSTART:" + dateCompact + "T" + pad2(sh) + pad2(sm) + "00";
+    let eh, em;
+    if (o.timeEnd){
+      [eh, em] = o.timeEnd.split(":").map(Number);
+    } else {
+      eh = (sh + 1) % 24; em = sm; // default 1-hour block if no end time given
+    }
+    dtend = "DTEND:" + dateCompact + "T" + pad2(eh) + pad2(em) + "00";
+  } else {
+    // all-day event — ICS end date for all-day events is exclusive (the day after)
+    dtstart = "DTSTART;VALUE=DATE:" + dateCompact;
+    const d = parseDay(o.dateISO);
+    d.setDate(d.getDate() + 1);
+    dtend = "DTEND;VALUE=DATE:" + d.getFullYear() + pad2(d.getMonth() + 1) + pad2(d.getDate());
+  }
+
+  const descParts = [];
+  if (o.description) descParts.push(o.description);
+  if (o.contact) descParts.push("Sign up: " + o.contact);
+  if (o.hours) descParts.push("Hours: " + o.hours);
+
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//NHS Service Hours//EN",
+    "BEGIN:VEVENT",
+    "UID:nhs-opp-" + Date.now() + "@nhs-hours",
+    "DTSTAMP:" + icsStamp(new Date()),
+    dtstart,
+    dtend,
+    "SUMMARY:" + icsEsc(o.title + (o.org ? " — " + o.org : "")),
+    "DESCRIPTION:" + icsEsc(descParts.join("\n")),
+    "LOCATION:" + icsEsc(o.location || ""),
+    "END:VEVENT",
+    "END:VCALENDAR"
+  ];
+
+  const blob = new Blob([lines.join("\r\n")], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = (o.title || "event").replace(/[^\w\- ]/g, "").trim().slice(0, 60) + ".ics";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function pad2(n){ return String(n).padStart(2, "0"); }
+function icsEsc(s){ return String(s || "").replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\n/g,"\\n"); }
+function icsStamp(d){
+  return d.getUTCFullYear() + pad2(d.getUTCMonth()+1) + pad2(d.getUTCDate()) + "T" + pad2(d.getUTCHours()) + pad2(d.getUTCMinutes()) + pad2(d.getUTCSeconds()) + "Z";
 }
 
 /* ---------------- annual goal banner ---------------- */
