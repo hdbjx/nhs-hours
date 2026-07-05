@@ -19,29 +19,34 @@
     --ink:#16202b;
     --ink-soft:#5b6674;
     --ink-faint:#8b96a3;
-    --glass-light-border:rgba(74,18,40,.12);
+    --glass-light-border:rgba(154,99,112,.12);
     --green:#1e7a49;
     --red:#b3383f;
     --radius:22px;
+    --surface:#f2e9eb;
+    --shadow-dark:rgba(154,99,112,.35);
+    --shadow-light:rgba(255,255,255,.9);
+    --shadow-dark-soft:rgba(154,99,112,.2);
+    --dark-surface:#4f1830;
+    --dark-shadow-dark:rgba(15,3,8,.55);
+    --dark-shadow-light:rgba(122,52,74,.5);
   }
   *{margin:0;padding:0;box-sizing:border-box;}
   html{scroll-behavior:smooth;}
   body{
     font-family:'Public Sans',system-ui,sans-serif;
-    background:#f5eef0;
+    background:var(--surface);
     color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh;
   }
   ::selection{background:rgba(184,134,11,.35);}
 
   /* ---------- light glass primitive (matches member dashboard) ---------- */
   .gate, .stat, .q-card, .table-wrap, .panel, .opp-row, .empty-state, header{
-    background:linear-gradient(155deg, rgba(255,255,255,.82) 0%, rgba(255,255,255,.6) 100%);
-    -webkit-backdrop-filter:blur(18px) saturate(150%);
-    backdrop-filter:blur(18px) saturate(150%);
-    border:1px solid var(--glass-light-border);
+    background:var(--surface);
+    border:none;
     box-shadow:
-      0 18px 44px -20px rgba(74,18,40,.28),
-      inset 0 1px 0 rgba(255,255,255,.9);
+      9px 9px 20px var(--shadow-dark),
+      -9px -9px 20px var(--shadow-light);
     position:relative;
   }
 
@@ -80,10 +85,10 @@
   .gate p{color:var(--ink-soft);font-size:.9rem;margin-bottom:20px;}
   .gate input{
     width:100%;text-align:center;font-family:'Spline Sans Mono',monospace;font-size:1.4rem;font-weight:600;letter-spacing:.4em;
-    padding:13px;border-radius:12px;border:1px solid var(--glass-light-border);background:rgba(255,255,255,.75);color:var(--ink);
-    box-shadow:inset 0 1px 2px rgba(74,18,40,.06);
+    padding:13px;border-radius:12px;border:none;background:var(--surface);color:var(--ink);
+    box-shadow:inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
   }
-  .gate input:focus{outline:2px solid var(--gold);outline-offset:1px;background:#fff;}
+  .gate input:focus{outline:2px solid var(--gold);outline-offset:1px;}
   .gate .btn{width:100%;margin-top:14px;}
   .gate-error{display:none;margin-top:12px;font-size:.85rem;font-weight:600;color:var(--red);}
 
@@ -91,7 +96,7 @@
   .btn{
     font-family:'Public Sans',sans-serif;font-weight:700;font-size:.88rem;
     padding:11px 20px;border-radius:14px;border:none;cursor:pointer;
-    transition:transform .12s,filter .18s;position:relative;overflow:hidden;
+    transition:transform .12s,filter .18s;position:relative;
   }
   .btn-spinner{
     display:inline-block;width:14px;height:14px;margin-right:8px;vertical-align:-2px;
@@ -100,17 +105,20 @@
   }
   @keyframes btn-spin{ to{ transform:rotate(360deg); } }
   @media (prefers-reduced-motion:reduce){ .btn-spinner{animation:none;border-style:dotted;} }
-  .btn::after{content:"";position:absolute;inset:0 0 55% 0;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,0));pointer-events:none;}
   .btn:active{transform:scale(.97);}
   .btn:disabled{opacity:.55;cursor:wait;}
-  .btn-gold{background:linear-gradient(160deg,var(--gold-bright) 0%,var(--gold) 55%,#8a660f 100%);color:#241a04;box-shadow:0 10px 24px -10px rgba(184,134,11,.7), inset 0 1px 1px rgba(255,255,255,.5);}
+  .btn-gold{background:var(--gold);color:#241a04;box-shadow:6px 6px 12px rgba(90,65,5,.4), -4px -4px 10px rgba(255,214,120,.4);}
   .btn-gold:hover{filter:brightness(1.07);}
-  .btn-navy{background:linear-gradient(160deg,var(--navy-2) 0%,var(--navy) 100%);color:#fff;box-shadow:0 10px 24px -10px rgba(74,18,40,.55), inset 0 1px 0 rgba(255,255,255,.25);}
+  .btn-gold:active{box-shadow:inset 4px 4px 8px rgba(90,65,5,.5), inset -3px -3px 6px rgba(255,214,120,.3);}
+  .btn-navy{background:var(--navy);color:#fff;box-shadow:6px 6px 12px var(--shadow-dark), -4px -4px 10px var(--shadow-light);}
   .btn-navy:hover{filter:brightness(1.15);}
-  .btn-approve{background:linear-gradient(160deg,#2b9560,var(--green));color:#fff;box-shadow:0 8px 18px -8px rgba(30,122,73,.6), inset 0 1px 0 rgba(255,255,255,.25);}
+  .btn-navy:active{box-shadow:inset 4px 4px 8px rgba(74,18,40,.4), inset -3px -3px 6px rgba(255,255,255,.6);}
+  .btn-approve{background:var(--green);color:#fff;box-shadow:5px 5px 10px rgba(15,60,36,.4), -3px -3px 8px rgba(120,220,170,.35);}
   .btn-approve:hover{filter:brightness(1.08);}
-  .btn-deny{background:rgba(255,255,255,.65);color:var(--red);border:1.5px solid var(--red);}
-  .btn-deny:hover{background:rgba(179,56,63,.1);}
+  .btn-approve:active{box-shadow:inset 3px 3px 6px rgba(15,60,36,.5), inset -2px -2px 5px rgba(120,220,170,.3);}
+  .btn-deny{background:var(--surface);color:var(--red);box-shadow:5px 5px 10px var(--shadow-dark), -3px -3px 8px var(--shadow-light);}
+  .btn-deny:hover{filter:brightness(.98);}
+  .btn-deny:active{box-shadow:inset 3px 3px 6px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light);}
   .btn-sm{padding:8px 14px;font-size:.8rem;border-radius:11px;}
   .btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
 
@@ -141,12 +149,10 @@
   /* ---------- review queue ---------- */
   .bulk-bar{
     display:none;align-items:center;gap:12px;flex-wrap:wrap;
-    background:linear-gradient(160deg, rgba(74,18,40,.96) 0%, rgba(107,29,58,.93) 100%);
-    -webkit-backdrop-filter:blur(18px) saturate(150%);backdrop-filter:blur(18px) saturate(150%);
-    border:1px solid rgba(74,18,40,.5);
+    background:var(--dark-surface);
     color:#fff;border-radius:16px;padding:10px 16px;margin-bottom:16px;
     position:sticky;top:78px;z-index:20;
-    box-shadow:0 26px 60px -22px rgba(74,18,40,.55), inset 0 1px 0 rgba(255,255,255,.18);
+    box-shadow:6px 6px 14px var(--dark-shadow-dark), -6px -6px 14px var(--dark-shadow-light);
   }
   .bulk-bar.show{display:flex;}
   .bulk-bar .n{font-family:'Spline Sans Mono',monospace;font-weight:600;color:var(--gold-soft);}
@@ -177,8 +183,8 @@
   .q-desc{font-size:.87rem;color:var(--ink);background:rgba(255,255,255,.55);border:1px solid var(--glass-light-border);border-radius:10px;padding:9px 13px;margin-bottom:12px;}
   .q-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
   .q-note{flex:1;min-width:180px;font-family:'Public Sans',sans-serif;font-size:1rem;padding:9px 12px;border-radius:10px;
-    border:1px solid var(--glass-light-border);background:rgba(255,255,255,.75);box-shadow:inset 0 1px 2px rgba(74,18,40,.06);}
-  .q-note:focus{outline:2px solid var(--blue);outline-offset:1px;background:#fff;}
+    border:none;background:var(--surface);box-shadow:inset 2px 2px 4px var(--shadow-dark-soft), inset -2px -2px 4px var(--shadow-light);}
+  .q-note:focus{outline:2px solid var(--blue);outline-offset:1px;}
   .photo-link{
     display:inline-flex;align-items:center;gap:6px;font-size:.82rem;font-weight:700;color:var(--blue);
     text-decoration:none;border:1.5px solid var(--blue);border-radius:10px;padding:7px 13px;background:rgba(255,255,255,.5);
@@ -192,9 +198,8 @@
   .filter-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
   .filter-row input,.filter-row select{
     font-family:'Public Sans',sans-serif;font-size:1rem;padding:10px 13px;border-radius:12px;
-    border:1px solid var(--glass-light-border);background:rgba(255,255,255,.75);color:var(--ink);
-    box-shadow:inset 0 1px 2px rgba(74,18,40,.06);
-    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    border:none;background:var(--surface);color:var(--ink);
+    box-shadow:inset 3px 3px 6px var(--shadow-dark-soft), inset -3px -3px 6px var(--shadow-light);
   }
   .filter-row input{flex:1;min-width:200px;}
   .filter-row input:focus,.filter-row select:focus{outline:2px solid var(--blue);outline-offset:1px;background:#fff;}
@@ -212,7 +217,7 @@
   .status-pill.denied{background:rgba(179,56,63,.1);color:var(--red);border-color:rgba(179,56,63,.3);}
   .row-flip{background:none;border:none;color:var(--blue);font-size:.76rem;font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:2px 0;white-space:nowrap;}
   .goal-star{color:var(--gold-deep);font-weight:700;}
-  .mini-bar{height:7px;border-radius:99px;background:rgba(74,18,40,.1);overflow:hidden;min-width:110px;}
+  .mini-bar{height:7px;border-radius:99px;background:var(--surface);box-shadow:inset 1px 1px 3px var(--shadow-dark-soft);overflow:hidden;min-width:110px;}
   .mini-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold-bright),var(--gold));border-radius:99px;}
 
   /* ---------- opportunities ---------- */
@@ -222,9 +227,9 @@
   .f{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;min-width:0;}
   .f label{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--navy);}
   .f input,.f textarea{width:100%;min-width:0;font-family:'Public Sans',sans-serif;font-size:1rem;padding:10px 13px;border-radius:12px;
-    border:1px solid var(--glass-light-border);background:rgba(255,255,255,.75);color:var(--ink);
-    box-shadow:inset 0 1px 2px rgba(74,18,40,.06);}
-  .f input:focus,.f textarea:focus{outline:2px solid var(--blue);outline-offset:1px;background:#fff;}
+    border:none;background:var(--surface);color:var(--ink);
+    box-shadow:inset 3px 3px 6px var(--shadow-dark-soft), inset -3px -3px 6px var(--shadow-light);}
+  .f input:focus,.f textarea:focus{outline:2px solid var(--blue);outline-offset:1px;}
   .f textarea{resize:vertical;min-height:70px;}
   .f-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 
@@ -237,11 +242,11 @@
   .bulk-add-details[open] summary::before{content:"– ";}
   #bulkAddText{
     width:100%;font-family:'Spline Sans Mono',monospace;font-size:.85rem;line-height:1.5;
-    padding:10px 13px;border-radius:12px;border:1px solid var(--glass-light-border);
-    background:rgba(255,255,255,.75);box-shadow:inset 0 1px 2px rgba(11,42,74,.06);
+    padding:10px 13px;border-radius:12px;border:none;
+    background:var(--surface);box-shadow:inset 3px 3px 6px var(--shadow-dark-soft), inset -3px -3px 6px var(--shadow-light);
     color:var(--ink);resize:vertical;min-height:110px;
   }
-  #bulkAddText:focus{outline:2px solid var(--blue);outline-offset:1px;background:#fff;}
+  #bulkAddText:focus{outline:2px solid var(--blue);outline-offset:1px;}
   #bulkAddResults{margin-top:12px;font-size:.83rem;}
   #bulkAddResults .added-line{color:var(--green);font-weight:600;margin-bottom:8px;}
   #bulkAddResults .skip-row{
@@ -262,11 +267,13 @@
   .opp-row h4{font-family:'Zilla Slab',serif;color:var(--navy);font-size:1rem;margin-bottom:2px;}
   .opp-row .meta{font-size:.8rem;color:var(--ink-soft);}
   .opp-row .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-  .toggle-btn{font-size:.76rem;font-weight:700;padding:7px 13px;border-radius:10px;cursor:pointer;border:1.5px solid;background:rgba(255,255,255,.6);}
-  .toggle-btn.on{color:var(--green);border-color:var(--green);}
-  .toggle-btn.off{color:var(--ink-faint);border-color:var(--glass-light-border);}
-  .del-btn{font-size:.76rem;font-weight:700;padding:7px 13px;border-radius:10px;cursor:pointer;border:1.5px solid var(--red);background:rgba(255,255,255,.6);color:var(--red);}
-  .del-btn:hover{background:rgba(179,56,63,.1);}
+  .toggle-btn{font-size:.76rem;font-weight:700;padding:7px 13px;border-radius:10px;cursor:pointer;border:none;background:var(--surface);box-shadow:3px 3px 6px var(--shadow-dark-soft), -2px -2px 5px var(--shadow-light);}
+  .toggle-btn.on{color:var(--green);}
+  .toggle-btn.off{color:var(--ink-faint);}
+  .toggle-btn:active{box-shadow:inset 2px 2px 4px var(--shadow-dark-soft);}
+  .del-btn{font-size:.76rem;font-weight:700;padding:7px 13px;border-radius:10px;cursor:pointer;border:none;background:var(--surface);box-shadow:3px 3px 6px var(--shadow-dark-soft), -2px -2px 5px var(--shadow-light);color:var(--red);}
+  .del-btn:hover{filter:brightness(.97);}
+  .del-btn:active{box-shadow:inset 2px 2px 4px var(--shadow-dark-soft);}
   .live-pill{font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:999px;margin-left:8px;vertical-align:2px;border:1px solid;}
   .live-pill.on{background:rgba(30,122,73,.12);color:var(--green);border-color:rgba(30,122,73,.3);}
   .live-pill.off{background:rgba(74,18,40,.06);color:var(--ink-faint);border-color:var(--glass-light-border);}
@@ -275,10 +282,10 @@
   .manual-add{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap;}
   .manual-add input{
     font-family:'Spline Sans Mono',monospace;font-size:1rem;padding:8px 12px;border-radius:10px;
-    border:1px solid var(--glass-light-border);background:rgba(255,255,255,.75);color:var(--ink);
-    box-shadow:inset 0 1px 2px rgba(74,18,40,.06);width:170px;
+    border:none;background:var(--surface);color:var(--ink);
+    box-shadow:inset 2px 2px 4px var(--shadow-dark-soft), inset -2px -2px 4px var(--shadow-light);width:170px;
   }
-  .manual-add input:focus{outline:2px solid var(--blue);outline-offset:1px;background:#fff;}
+  .manual-add input:focus{outline:2px solid var(--blue);outline-offset:1px;}
   .manual-add .hint{width:100%;font-size:.74rem;color:var(--ink-faint);}
   .owed-cell{color:var(--red);font-weight:600;}
   .owed-cell.zero{color:var(--ink-faint);font-weight:500;}
@@ -334,15 +341,13 @@
 
   .toast{
     position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);
-    background:linear-gradient(160deg, rgba(74,18,40,.97), rgba(107,29,58,.95));
-    -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
-    border:1px solid rgba(255,255,255,.18);
+    background:var(--dark-surface);
     color:#fff;font-size:.86rem;font-weight:600;
-    padding:12px 22px;border-radius:14px;box-shadow:0 16px 36px -12px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.2);
+    padding:12px 22px;border-radius:14px;box-shadow:6px 6px 16px var(--dark-shadow-dark), -6px -6px 16px var(--dark-shadow-light);
     transition:transform .3s cubic-bezier(.2,.8,.3,1);z-index:100;max-width:90vw;text-align:center;
   }
   .toast.show{transform:translateX(-50%) translateY(0);}
-  .toast.err{background:linear-gradient(160deg,#a63a3a,#8d2f35);}
+  .toast.err{background:#7a2530;}
 
   .refresh-note{font-size:.78rem;color:var(--ink-faint);margin-top:18px;text-align:center;}
 
@@ -510,7 +515,7 @@
       </div>
       <div class="table-wrap"><div class="table-scroll">
         <table>
-          <thead><tr><th>Member</th><th>Number</th><th>Grade</th><th>Approved</th><th>Owed</th><th style="width:180px">Progress</th></tr></thead>
+          <thead><tr><th>Member</th><th>Number</th><th>Grade</th><th>Approved</th><th>Owed</th><th>Excused abs.</th><th style="width:180px">Progress</th></tr></thead>
           <tbody id="rosterBody"></tbody>
         </table>
       </div></div>
@@ -657,7 +662,7 @@
 /* ================================================================
    CONFIG — same Web App URL as the member dashboard.
    ================================================================ */
-const API_URL = "https://script.google.com/macros/s/AKfycbzpeHMnlf_aY7z_NAoZrvLPpZs93zrOxPT-voxEGpmvLEwdyVEjZxpGauCGmnHRVr0/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxpME6Dkxe7ikThcnxVco7q7-W0joKsMxZQ0TCiDAzXuNORVgD029s1yBMjhyawNiU/exec";
 
 const GATE_PROMPT = "Enter the officer PIN to manage hours and opportunities.";
 
@@ -912,11 +917,33 @@ function renderRoster(){
         '<td>' + esc(gradeLabel) + '</td>' +
         '<td class="mono">' + fmtHrs(m.approved) + ' / ' + effectiveGoal + '</td>' +
         '<td class="mono owed-cell' + (owed ? '' : ' zero') + '">' + (owed ? '+' + fmtHrs(owed) : '—') + '</td>' +
+        '<td>' +
+          '<button class="toggle-btn ' + (m.excusedUsed ? 'off' : 'on') + ' btn-sm" ' +
+            'onclick="toggleExcused(this, ' + jsAttr(m.studentNumber) + ', ' + (m.excusedUsed ? "'N'" : "'Y'") + ')" ' +
+            'title="Click to ' + (m.excusedUsed ? 'reset — give them their excused absence back' : 'mark their one excused absence as already used') + '">' +
+            (m.excusedUsed ? 'Used' : 'Available') +
+          '</button>' +
+        '</td>' +
         '<td><div class="mini-bar"><i style="width:' + pct + '%"></i></div></td>';
       body.appendChild(tr);
     });
   if (!body.children.length){
-    body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--ink-faint);padding:30px">No members found.</td></tr>';
+    body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--ink-faint);padding:30px">No members found.</td></tr>';
+  }
+}
+
+async function toggleExcused(btn, studentNumber, newState){
+  setBtnLoading(btn, "…");
+  try {
+    const res = await apiCall({ action:"setExcusedAbsence", pin: PIN, studentNumber, used: newState });
+    if (!res.success){ clearBtnLoading(btn, newState === "Y" ? "Used" : "Available"); showToast(res.error || "Could not update.", true); return; }
+    const m = (DATA.roster || []).find(r => String(r.studentNumber) === String(studentNumber));
+    if (m) m.excusedUsed = newState === "Y";
+    renderRoster();
+    showToast(newState === "Y" ? "Marked as used." : "Excused absence reset.");
+  } catch(e){
+    clearBtnLoading(btn, newState === "Y" ? "Used" : "Available");
+    showToast(e.message, true);
   }
 }
 
@@ -1323,10 +1350,12 @@ async function addAttendeeManually(row, id){
   } catch(e){ clearBtnLoading(btn); input.disabled = false; showToast(e.message, true); }
 }
 
-/* Add a 30-minute makeup requirement to everyone absent from this meeting.
-   One-shot per meeting — the button disappears once applied so it can't double-charge. */
+/* Add a 30-minute makeup requirement to everyone absent from this meeting —
+   except each student's first absence of the year, which uses up their one
+   excused absence instead of the penalty. One-shot per meeting — the button
+   disappears once applied so it can't double-charge. */
 async function applyMakeup(btn, row, id, absentCount){
-  const ok = await showConfirm("Add a 30-minute makeup requirement to the " + absentCount + " member(s) still marked absent? Add any stragglers first — this can't be undone from here.");
+  const ok = await showConfirm("Apply makeup for the " + absentCount + " member(s) still marked absent? Anyone using their one excused absence for the year is forgiven instead of penalized. Add any stragglers first — this can't be undone from here.");
   if (!ok) return;
   setBtnLoading(btn, "Applying…");
   try {
@@ -1337,12 +1366,15 @@ async function applyMakeup(btn, row, id, absentCount){
       meeting.makeupApplied = true;
       const presentSet = new Set((meeting.attendees || []).map(a => String(a.studentNumber)));
       (DATA.roster || []).forEach(m2 => {
-        if (!presentSet.has(String(m2.studentNumber))) m2.owed = (Number(m2.owed) || 0) + 0.5;
+        if (presentSet.has(String(m2.studentNumber))) return;
+        if (!m2.excusedUsed) m2.excusedUsed = true;
+        else m2.owed = (Number(m2.owed) || 0) + 0.5;
       });
     }
     renderMeetings();
     renderRoster();
-    showToast("30-minute makeup applied to " + absentCount + " member(s).");
+    const penalized = Number(res.penalizedCount) || 0, excused = Number(res.excusedCount) || 0;
+    showToast(penalized + " penalized, " + excused + " used their excused absence.");
   } catch(e){ clearBtnLoading(btn); showToast(e.message, true); }
 }
 
