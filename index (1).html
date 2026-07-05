@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NHS — Service Hours</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&family=Spline+Sans+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0b2a4a;
+    --navy-2:#123a63;
+    --blue:#1d5c8f;
+    --gold:#c9a227;
+    --gold-bright:#e3ba45;
+    --gold-soft:#e8d9a8;
+    --gold-deep:#8f6f14;
+    --ink:#16202b;
+    --ink-soft:#5b6674;
+    --ink-faint:#8b96a3;
+    --glass-light:rgba(255,255,255,.68);
+    --glass-light-border:rgba(11,42,74,.12);
+    --glass-dark-border:rgba(255,255,255,.16);
+    --green:#1e7a49;
+    --red:#b3383f;
+    --radius:22px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Public Sans',system-ui,sans-serif;
+    background:#eef1f6;
+    color:var(--ink);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  ::selection{background:rgba(201,162,39,.35);}
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto;}
+  }
+
+  /* ---------- light glass primitives (sit on the host page) ---------- */
+  .card, .opp-card, header{
+    background:linear-gradient(155deg, rgba(255,255,255,.82) 0%, rgba(255,255,255,.6) 100%);
+    -webkit-backdrop-filter:blur(18px) saturate(150%);
+    backdrop-filter:blur(18px) saturate(150%);
+    border:1px solid var(--glass-light-border);
+    box-shadow:
+      0 18px 44px -20px rgba(11,42,74,.28),
+      inset 0 1px 0 rgba(255,255,255,.9);
+    position:relative;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    position:sticky;top:0;z-index:50;
+    border-radius:0 0 18px 18px;
+    border-top:none;
+  }
+  .header-inner{
+    max-width:1080px;margin:0 auto;
+    padding:15px 20px;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:center;gap:14px;}
+  .brand-key{
+    width:46px;height:46px;flex:none;border-radius:50%;
+    background:radial-gradient(circle at 32% 28%, var(--gold-bright), var(--gold) 60%, #a67f1c 100%);
+    display:grid;place-items:center;
+    box-shadow:0 6px 16px -6px rgba(201,162,39,.6), inset 0 1px 1px rgba(255,255,255,.6), inset 0 -2px 4px rgba(90,60,0,.3);
+  }
+  .brand-key svg{display:block;}
+  .brand h1{
+    font-family:'Zilla Slab',serif;font-weight:700;font-size:1.35rem;letter-spacing:.01em;line-height:1.1;color:var(--navy);
+  }
+  .brand .sub{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-deep);font-weight:700;}
+
+  .site-nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .site-nav a{
+    font-family:'Public Sans',sans-serif;font-weight:700;font-size:.85rem;
+    color:var(--ink-soft);text-decoration:none;padding:8px 14px;border-radius:999px;
+    transition:color .15s,background .15s;
+  }
+  .site-nav a:hover{color:var(--navy);background:rgba(11,42,74,.06);}
+  .site-nav a.active{color:var(--navy);background:rgba(201,162,39,.16);}
+
+  /* ---------- layout ---------- */
+  main{max-width:1080px;margin:0 auto;padding:30px 20px 80px;}
+  section{margin-bottom:54px;scroll-margin-top:96px;}
+  .section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+  .section-head h2{
+    font-family:'Zilla Slab',serif;font-weight:700;font-size:1.6rem;color:var(--navy);
+  }
+  .section-head .tag{
+    font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--gold-deep);
+    background:rgba(201,162,39,.16);
+    border:1px solid rgba(201,162,39,.35);
+    padding:4px 12px;border-radius:999px;
+  }
+  .section-head p{width:100%;color:var(--ink-soft);font-size:.92rem;max-width:60ch;}
+
+  .card{padding:26px;border-radius:var(--radius);}
+
+  /* ================================================================
+     HERO — the one dark panel. Deep navy glass so the gold punch
+     card pops against the light host page.
+     ================================================================ */
+  .hero{
+    color:#fff;padding:34px 30px;margin-bottom:54px;
+    border-radius:var(--radius);
+    background:linear-gradient(160deg, rgba(11,42,74,.96) 0%, rgba(18,58,99,.93) 100%);
+    -webkit-backdrop-filter:blur(18px) saturate(150%);
+    backdrop-filter:blur(18px) saturate(150%);
+    border:1px solid rgba(11,42,74,.5);
+    box-shadow:
+      0 26px 60px -22px rgba(11,42,74,.55),
+      inset 0 1px 0 rgba(255,255,255,.18);
+    position:relative;overflow:hidden;
+  }
+  .hero::before{
+    content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+    background:radial-gradient(90% 130% at 85% -20%, rgba(212,171,58,.2) 0%, transparent 55%);
+  }
+  .annual-progress{
+    position:relative;margin-bottom:20px;
+    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);
+    border-radius:16px;padding:14px 18px;
+  }
+  .annual-progress .label{
+    display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;
+    font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-soft);margin-bottom:9px;
+  }
+  .annual-progress .label .nums{
+    font-family:'Spline Sans Mono',monospace;letter-spacing:.02em;color:#fff;font-size:.78rem;
+  }
+  .annual-progress .bar{
+    height:10px;border-radius:99px;background:rgba(0,0,0,.25);overflow:hidden;
+    border:1px solid rgba(255,255,255,.14);
+    box-shadow:inset 0 1px 3px rgba(0,0,0,.3);
+  }
+  .annual-progress .bar i{
+    display:block;height:100%;border-radius:99px;
+    background:linear-gradient(90deg, var(--gold-bright), var(--gold));
+    box-shadow:0 0 12px -2px rgba(212,171,58,.7);
+    transition:width .7s cubic-bezier(.22,.9,.3,1);
+  }
+  .hero .eyebrow{font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-soft);font-weight:700;margin-bottom:10px;position:relative;}
+  .hero h2{font-family:'Zilla Slab',serif;font-size:clamp(1.55rem,4vw,2.2rem);font-weight:700;line-height:1.15;margin-bottom:8px;position:relative;}
+  .hero p{color:#b9c8d8;font-size:.96rem;max-width:56ch;position:relative;}
+
+  /* login form (inside dark hero) */
+  .login-row{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;position:relative;}
+  .login-row input{
+    flex:1;min-width:200px;
+    font-family:'Spline Sans Mono',monospace;font-size:1rem;font-weight:500;
+    padding:13px 18px;border-radius:14px;
+    border:1px solid rgba(255,255,255,.22);
+    background:rgba(255,255,255,.09);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.12), inset 0 2px 8px rgba(0,0,0,.22);
+    color:#fff;letter-spacing:.06em;
+  }
+  .login-row input::placeholder{color:#8fa3b8;letter-spacing:.02em;font-family:'Public Sans',sans-serif;}
+  .login-row input:focus{outline:2px solid var(--gold);outline-offset:1px;background:rgba(255,255,255,.13);}
+
+  .btn{
+    font-family:'Public Sans',sans-serif;font-weight:700;font-size:.9rem;
+    padding:13px 24px;border-radius:14px;border:none;cursor:pointer;
+    transition:transform .12s,filter .18s,box-shadow .18s;
+    position:relative;overflow:hidden;
+  }
+  .btn-spinner{
+    display:inline-block;width:14px;height:14px;margin-right:8px;vertical-align:-2px;
+    border:2px solid currentColor;border-right-color:transparent;border-radius:50%;
+    animation:btn-spin .6s linear infinite;opacity:.85;
+  }
+  @keyframes btn-spin{ to{ transform:rotate(360deg); } }
+  @media (prefers-reduced-motion:reduce){ .btn-spinner{animation:none;border-style:dotted;} }
+  .btn::after{
+    content:"";position:absolute;inset:0 0 55% 0;border-radius:inherit;
+    background:linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0));
+    pointer-events:none;
+  }
+  .btn:active{transform:scale(.97);}
+  .btn-gold{
+    background:linear-gradient(160deg, var(--gold-bright) 0%, var(--gold) 55%, #a5831c 100%);
+    color:#241a04;
+    box-shadow:0 10px 24px -10px rgba(201,162,39,.7), inset 0 1px 1px rgba(255,255,255,.5);
+  }
+  .btn-gold:hover{filter:brightness(1.07);}
+  .btn-navy{
+    background:linear-gradient(160deg, var(--navy-2) 0%, var(--navy) 100%);
+    color:#fff;
+    box-shadow:0 10px 24px -10px rgba(11,42,74,.55), inset 0 1px 0 rgba(255,255,255,.25);
+  }
+  .btn-navy:hover{filter:brightness(1.15);}
+  .btn-ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--glass-light-border);}
+  .btn-ghost:hover{color:var(--ink);}
+  .btn:disabled{opacity:.55;cursor:wait;}
+  .btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+
+  .login-error{
+    display:none;margin-top:14px;font-size:.85rem;font-weight:600;color:#ffd7d7;
+    background:rgba(166,58,58,.32);border:1px solid rgba(240,138,138,.45);
+    padding:11px 16px;border-radius:12px;position:relative;
+  }
+
+  /* ---------- punch card (signature, inside dark hero) ---------- */
+  .progress-wrap{display:none;margin-top:26px;position:relative;}
+  .member-line{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px;}
+  .member-line .name{font-family:'Zilla Slab',serif;font-size:1.3rem;font-weight:600;}
+  .member-line .num{font-family:'Spline Sans Mono',monospace;font-size:.8rem;color:#8fa3b8;letter-spacing:.08em;}
+  .signout{background:none;border:none;color:var(--gold-soft);font-size:.8rem;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:4px;}
+  .signout:hover{color:#fff;}
+
+  .punch-card{
+    background:rgba(255,255,255,.055);
+    border:1px dashed rgba(232,217,168,.42);
+    border-radius:18px;padding:24px 18px 18px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  .punch-label{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-soft);font-weight:700;text-align:center;margin-bottom:18px;}
+  .keys-row{display:flex;justify-content:center;gap:clamp(6px,2vw,16px);flex-wrap:wrap;}
+  .key-slot{display:flex;flex-direction:column;align-items:center;gap:7px;}
+  .key-circle{
+    width:clamp(40px,9vw,56px);height:clamp(40px,9vw,56px);border-radius:50%;
+    border:1.5px solid rgba(232,217,168,.38);
+    display:grid;place-items:center;position:relative;overflow:hidden;
+    background:rgba(255,255,255,.06);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.15), inset 0 -3px 8px rgba(0,0,0,.25);
+    transition:border-color .3s, box-shadow .4s;
+  }
+  .key-circle .fill{
+    position:absolute;inset:0;
+    background:linear-gradient(170deg, var(--gold-bright) 0%, var(--gold) 60%, #a17c17 100%);
+    transform:translateY(100%);transition:transform .7s cubic-bezier(.22,.9,.3,1);
+  }
+  .key-circle svg{position:relative;z-index:1;transition:opacity .3s;opacity:.45;}
+  .key-slot.filled .key-circle,
+  .key-slot.partial .key-circle{border-color:var(--gold);}
+  .key-slot.filled .key-circle{
+    box-shadow:0 0 18px -2px rgba(212,171,58,.6), inset 0 1px 1px rgba(255,255,255,.5);
+  }
+  .key-slot.filled .key-circle svg{opacity:1;}
+  .key-slot.partial .key-circle svg{opacity:.85;}
+  .key-slot .hour-num{font-family:'Spline Sans Mono',monospace;font-size:.68rem;color:#8fa3b8;font-weight:600;}
+  .key-slot.filled .hour-num{color:var(--gold-soft);}
+  /* makeup-owed slots (from a missed meeting) render in red instead of gold */
+  .key-slot.owed .key-circle{border-color:rgba(240,138,138,.4);}
+  .key-slot.owed .fill{background:linear-gradient(170deg, #d66a70 0%, var(--red) 60%, #7a2a2f 100%);}
+  .key-slot.owed.filled .key-circle,
+  .key-slot.owed.partial .key-circle{border-color:var(--red);}
+  .key-slot.owed.filled .key-circle{box-shadow:0 0 18px -2px rgba(179,56,63,.55), inset 0 1px 1px rgba(255,255,255,.5);}
+  .key-slot.owed .hour-num{color:#f4a9a9;}
+  @media (prefers-reduced-motion:reduce){
+    .key-circle .fill{transition:none;}
+  }
+
+  .totals-row{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;}
+  .total-chip{
+    flex:1;min-width:140px;
+    background:rgba(255,255,255,.07);
+    border:1px solid rgba(255,255,255,.16);
+    border-radius:16px;padding:14px 18px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.14);
+  }
+  .total-chip .v{font-family:'Spline Sans Mono',monospace;font-size:1.5rem;font-weight:600;line-height:1.1;color:#fff;}
+  .total-chip .l{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:#8fa3b8;font-weight:600;margin-top:3px;}
+  .total-chip.done .v{color:var(--gold-bright);text-shadow:0 0 22px rgba(212,171,58,.55);}
+  .goal-note{margin-top:16px;font-size:.9rem;color:#b9c8d8;}
+  .goal-note strong{color:var(--gold-soft);}
+
+  /* ---------- history (inside dark hero) ---------- */
+  .history{margin-top:24px;display:none;}
+  .history h3{font-family:'Zilla Slab',serif;font-size:1.05rem;color:#fff;margin-bottom:10px;font-weight:600;}
+  .history-table{width:100%;border-collapse:collapse;font-size:.85rem;}
+  .history-table th{
+    text-align:left;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:#8fa3b8;
+    padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.18);font-weight:700;
+  }
+  .history-table td{padding:11px 10px;border-bottom:1px solid rgba(255,255,255,.08);color:#e6edf4;vertical-align:top;}
+  .history-table td.hrs{font-family:'Spline Sans Mono',monospace;font-weight:600;}
+  .status-pill{font-size:.66rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px;white-space:nowrap;}
+  .status-pill.approved{background:rgba(95,211,154,.18);color:#8fe6b6;border:1px solid rgba(95,211,154,.32);}
+  .status-pill.pending{background:rgba(212,171,58,.18);color:var(--gold-soft);border:1px solid rgba(212,171,58,.32);}
+  .status-pill.denied{background:rgba(240,138,138,.16);color:#f4a9a9;border:1px solid rgba(240,138,138,.32);}
+  .history-scroll{overflow-x:auto;}
+
+  /* ---------- opportunities (light glass on host page) ---------- */
+  .opps-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:18px;}
+  .opp-card{
+    border-radius:var(--radius);
+    padding:22px;display:flex;flex-direction:column;gap:11px;
+    transition:transform .2s cubic-bezier(.2,.7,.3,1), box-shadow .25s;
+    overflow:hidden;
+  }
+  .opp-card::before{
+    content:"";position:absolute;top:0;left:-70%;width:50%;height:100%;
+    background:linear-gradient(105deg, transparent, rgba(255,255,255,.65), transparent);
+    transform:skewX(-18deg);transition:left .55s ease;pointer-events:none;
+  }
+  .opp-card:hover{transform:translateY(-4px);
+    box-shadow:0 28px 56px -22px rgba(11,42,74,.4), inset 0 1px 0 rgba(255,255,255,.95);}
+  .opp-card:hover::before{left:130%;}
+  @media (prefers-reduced-motion:reduce){
+    .opp-card, .opp-card::before{transition:none;}
+  }
+  .opp-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;}
+  .opp-card h3{font-family:'Zilla Slab',serif;font-size:1.12rem;font-weight:600;color:var(--navy);line-height:1.25;}
+  .hrs-badge{
+    flex:none;font-family:'Spline Sans Mono',monospace;font-weight:600;font-size:.78rem;
+    background:rgba(201,162,39,.16);color:var(--gold-deep);
+    border:1px solid rgba(201,162,39,.4);
+    padding:4px 11px;border-radius:9px;white-space:nowrap;
+  }
+  .opp-meta{display:flex;flex-direction:column;gap:4px;font-size:.84rem;color:var(--ink-soft);}
+  .opp-meta span{display:flex;gap:8px;align-items:baseline;}
+  .opp-meta .k{font-size:.64rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);width:62px;flex:none;}
+  .opp-desc{font-size:.88rem;color:var(--ink);}
+  .opp-contact{margin-top:auto;padding-top:11px;border-top:1px solid rgba(11,42,74,.1);font-size:.8rem;color:var(--ink-soft);}
+  .opp-contact strong{color:var(--navy);}
+  .opps-empty,.opps-loading{grid-column:1/-1;text-align:center;color:var(--ink-soft);padding:40px 20px;font-size:.92rem;}
+
+  footer{
+    border-top:1px solid rgba(11,42,74,.12);padding:26px 20px 42px;text-align:center;
+    font-size:.8rem;color:var(--ink-soft);
+  }
+  footer .motto{font-family:'Zilla Slab',serif;font-style:italic;color:var(--navy);font-size:.95rem;margin-bottom:5px;}
+  footer .sponsor{margin-top:10px;font-size:.76rem;color:var(--ink-faint);}
+  footer .sponsor a{color:var(--gold-deep);font-weight:700;text-decoration:none;}
+  footer .sponsor a:hover{text-decoration:underline;}
+
+  @media (max-width:640px){
+    .header-inner{padding:13px 16px;}
+    .hero{padding:26px 20px;}
+    .card{padding:20px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-key" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2.5c1.8 2.3 2.8 4.1 2.8 5.5a2.8 2.8 0 0 1-5.6 0c0-1.4 1-3.2 2.8-5.5Z" stroke="#0b2a4a" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M9.5 11.5h5l-1.1 8c-.08.59-.58 1-1.16 1h-.48c-.58 0-1.08-.41-1.16-1l-1.1-8Z" stroke="#0b2a4a" stroke-width="1.8" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <h1>NHS</h1>
+        <div class="sub">Service Hours Dashboard</div>
+      </div>
+    </div>
+    <nav class="site-nav">
+      <a href="index.html" class="active">Home</a>
+      <a href="submit.html">Submit Hours</a>
+      <a href="officer.html">Officer HQ</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- ============ LOGIN + PROGRESS ============ -->
+  <div class="hero" id="progress">
+    <div class="annual-progress" id="annualGoalProgress" style="display:none">
+      <div class="label">
+        <span>Club-wide goal for the year</span>
+        <span class="nums" id="annualGoalText">0 / 0 hrs</span>
+      </div>
+      <div class="bar"><i id="annualGoalBar" style="width:0%"></i></div>
+    </div>
+    <div id="loginView">
+      <div class="eyebrow">Member check-in</div>
+      <h2>How close are you to your goal?</h2>
+      <p>Enter your student number to see your approved hours, anything still pending review, and your full submission history for this semester.</p>
+      <div class="login-row">
+        <input type="text" id="studentNumberInput" inputmode="numeric" autocomplete="off" maxlength="12"
+               placeholder="Student number" aria-label="Student number"
+               onkeydown="if(event.key==='Enter')login()">
+        <button class="btn btn-gold" id="loginBtn" onclick="login()">View my hours</button>
+      </div>
+      <div class="login-error" id="loginError"></div>
+    </div>
+
+    <div class="progress-wrap" id="progressView">
+      <div class="member-line">
+        <div>
+          <div class="name" id="memberName"></div>
+          <div class="num" id="memberNumber"></div>
+        </div>
+        <button class="signout" onclick="signOut()">Sign out</button>
+      </div>
+
+      <div class="punch-card">
+        <div class="punch-label" id="punchLabel">Semester service record</div>
+        <div class="keys-row" id="keysRow"></div>
+      </div>
+
+      <div class="totals-row">
+        <div class="total-chip" id="chipApproved">
+          <div class="v" id="approvedHours">0</div>
+          <div class="l">Approved hours</div>
+        </div>
+        <div class="total-chip">
+          <div class="v" id="pendingHours">0</div>
+          <div class="l">Pending review</div>
+        </div>
+        <div class="total-chip">
+          <div class="v" id="remainingHours">7</div>
+          <div class="l">Hours to go</div>
+        </div>
+        <div class="total-chip" id="chipMeetings" style="display:none">
+          <div class="v" id="meetingsAttended">0</div>
+          <div class="l">Meetings attended</div>
+        </div>
+        <div class="total-chip" id="chipOwed" style="display:none">
+          <div class="v" id="owedHours">0</div>
+          <div class="l">Makeup owed</div>
+        </div>
+      </div>
+      <div class="goal-note" id="goalNote"></div>
+
+      <div class="history" id="historySection">
+        <h3>Submission history</h3>
+        <div class="history-scroll">
+          <table class="history-table">
+            <thead>
+              <tr><th>Date</th><th>Event</th><th>Hours</th><th>Status</th></tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ OPPORTUNITIES ============ -->
+  <section id="opportunities">
+    <div class="section-head">
+      <h2>Volunteer opportunities</h2>
+      <span class="tag">Updated by officers</span>
+      <p>Upcoming ways to earn hours. Reach out to the listed contact to sign up, then log your hours on the Submit Hours page once you've served.</p>
+    </div>
+    <div class="opps-grid" id="oppsGrid">
+      <div class="opps-loading">Loading opportunities…</div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="motto">Scholarship · Service · Leadership · Character</div>
+  <div>NHS service hours are due by the end of each semester. Questions? Talk to an NHS officer or your adviser.</div>
+  <div class="sponsor">Sponsored by <a href="https://everydetail.co" target="_blank" rel="noopener">Every Detail</a></div>
+</footer>
+
+<script>
+/* ================================================================
+   CONFIG — paste your Apps Script Web App URL between the quotes.
+   Leave blank to preview the page with demo data.
+   ================================================================ */
+const API_URL = "https://script.google.com/macros/s/AKfycbyKO921qNx2eoUqvxByGZ1zbqLZKvW2ZCimIDBYivK1wQxnr686nfGX82zZimAZ4wg/exec";
+
+const HOURS_GOAL_FALLBACK = 10;
+
+/* ---------------- button loading state ----------------
+   Every async button gets a spinner + label, not just disabled text.
+   setBtnLoading stashes the button's original markup so clearBtnLoading
+   can restore it exactly (icons, counts, etc.) without hardcoding it twice. */
+function setBtnLoading(btn, label){
+  if (!btn) return;
+  if (btn.dataset.originalHtml === undefined) btn.dataset.originalHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span>' + label;
+}
+function clearBtnLoading(btn, label){
+  if (!btn) return;
+  btn.disabled = false;
+  btn.innerHTML = (label !== undefined) ? label : (btn.dataset.originalHtml || btn.textContent);
+  delete btn.dataset.originalHtml;
+}
+
+/* ---------------- API transport: fetch first, JSONP fallback ----------------
+   iOS Safari can refuse cross-site <script> loads inside embedded iframes,
+   which kills JSONP instantly. Plain fetch GET works because Apps Script
+   serves anonymous web apps with CORS headers. JSONP stays as a fallback. */
+let jsonpCounter = 0;
+
+async function apiCall(params){
+  if (!API_URL) throw new Error("DEMO");
+  const qs = Object.entries(params)
+    .map(([k,v]) => encodeURIComponent(k) + "=" + encodeURIComponent(v ?? ""))
+    .join("&");
+  try {
+    const res = await fetch(API_URL + "?" + qs, { method:"GET", redirect:"follow" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return await res.json();
+  } catch(fetchErr){
+    // fall back to JSONP for environments that block fetch
+    return jsonpCall(qs);
+  }
+}
+
+function jsonpCall(qs){
+  return new Promise((resolve, reject) => {
+    const cbName = "nhs_cb_" + (++jsonpCounter) + "_" + Date.now();
+    const cleanup = () => {
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+      clearTimeout(timer);
+    };
+    const timer = setTimeout(() => { cleanup(); reject(new Error("Request timed out. Try again.")); }, 20000);
+    window[cbName] = (data) => { cleanup(); resolve(data); };
+    const script = document.createElement("script");
+    script.src = API_URL + "?" + qs + "&callback=" + cbName;
+    script.onerror = () => { cleanup(); reject(new Error("Couldn't reach the server. Check your connection.")); };
+    document.body.appendChild(script);
+  });
+}
+
+/* ---------------- demo data (used when API_URL is blank) ---------------- */
+const DEMO = {
+  student: { name:"Demo Member", studentNumber:"123456", goal:10, owed:0 },
+  annualGoal: 4000,
+  annualApproved: 1180,
+  entries: [
+    { date:"2026-01-24", event:"MLK Day of Service — park cleanup", hours:3,   status:"Approved" },
+    { date:"2026-02-07", event:"Food bank sorting shift",           hours:2,   status:"Approved" },
+    { date:"2026-02-21", event:"Elementary school reading buddies", hours:1.5, status:"Pending"  }
+  ],
+  opportunities: [
+    { title:"Community Food Bank — Saturday Sort", org:"Atlanta Community Food Bank", date:"Sat, Jul 11", time:"9:00 AM – 12:00 PM", location:"732 Joseph E. Lowery Blvd", hours:"3 hrs", description:"Sort and box donated food for distribution. Wear closed-toe shoes.", contact:"Sign up with Ms. Rivera (sponsor)" },
+    { title:"Library Summer Reading Helpers", org:"Decatur Public Library", date:"Weekdays in July", time:"Flexible shifts", location:"Children's wing", hours:"1–2 hrs / shift", description:"Help run the summer reading table: check-ins, prizes, shelving picture books.", contact:"Email volunteer@dekalblibrary.org" },
+    { title:"Senior Center Game Afternoon", org:"Lou Walker Senior Center", date:"Fri, Jul 24", time:"2:00 – 4:30 PM", location:"2538 Panola Rd", hours:"2.5 hrs", description:"Play board games and cards with residents. Great for first-time volunteers.", contact:"Text club president to reserve a spot" }
+  ]
+};
+
+/* ---------------- state ---------------- */
+let currentStudent = null;
+
+/* Safari blocks storage in cross-site iframes and THROWS on access —
+   these wrappers keep the page alive when that happens. */
+function storeGet(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
+function storeSet(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
+function storeRemove(k){ try { localStorage.removeItem(k); } catch(e){} }
+
+/* ---------------- login / progress ---------------- */
+async function login(){
+  const input = document.getElementById("studentNumberInput");
+  const btn = document.getElementById("loginBtn");
+  const errBox = document.getElementById("loginError");
+  const num = input.value.trim();
+  errBox.style.display = "none";
+
+  if (!num){ showLoginError("Enter your student number first."); return; }
+  if (!/^\d{3,12}$/.test(num)){ showLoginError("Student numbers are digits only (3–12 characters)."); return; }
+
+  setBtnLoading(btn, "Checking…");
+  try {
+    let data;
+    try {
+      data = await apiCall({ action:"login", studentNumber:num });
+    } catch(e){
+      if (e.message === "DEMO"){ data = { success:true, ...DEMO, student:{...DEMO.student, studentNumber:num} }; }
+      else throw e;
+    }
+    if (!data.success){ showLoginError(data.error || "Student number not found. Check with an officer if you think this is a mistake."); return; }
+    currentStudent = data;
+    storeSet("nhs_student_number", num);
+    renderProgress(data);
+  } catch(e){
+    showLoginError(e.message);
+  } finally {
+    clearBtnLoading(btn, "View my hours");
+  }
+}
+
+function showLoginError(msg){
+  const errBox = document.getElementById("loginError");
+  errBox.textContent = msg;
+  errBox.style.display = "block";
+}
+
+function renderProgress(data){
+  const goal = Number(data.student.goal) || HOURS_GOAL_FALLBACK;
+  const owed = Math.max(0, Number(data.student.owed) || 0); // makeup hours from missed meetings
+  const effectiveGoal = goal + owed;
+  const entries = data.entries || [];
+  const approved = entries.filter(e => e.status === "Approved").reduce((s,e) => s + Number(e.hours || 0), 0);
+  const pending  = entries.filter(e => e.status === "Pending").reduce((s,e) => s + Number(e.hours || 0), 0);
+  const remaining = Math.max(0, effectiveGoal - approved);
+
+  document.getElementById("loginView").style.display = "none";
+  document.getElementById("progressView").style.display = "block";
+  document.getElementById("memberName").textContent = data.student.name;
+  document.getElementById("memberNumber").textContent = "#" + data.student.studentNumber;
+  document.getElementById("punchLabel").textContent = data.semesterLabel ? (data.semesterLabel + " service record") : "Semester service record";
+
+  /* punch card of keys — slots past the base goal are makeup hours (red) */
+  const row = document.getElementById("keysRow");
+  row.innerHTML = "";
+  for (let i = 1; i <= effectiveGoal; i++){
+    const slot = document.createElement("div");
+    slot.className = "key-slot" + (i > goal ? " owed" : "");
+    const fillAmt = Math.max(0, Math.min(1, approved - (i - 1)));
+    if (fillAmt >= 1) slot.classList.add("filled");
+    else if (fillAmt > 0) slot.classList.add("partial");
+    slot.innerHTML =
+      '<div class="key-circle">' +
+        '<div class="fill" style="transform:translateY(' + ((1 - fillAmt) * 100) + '%)"></div>' +
+        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none">' +
+          '<circle cx="8" cy="8" r="4" stroke="' + (fillAmt > 0 ? "#0b2a4a" : "#e8d9a8") + '" stroke-width="2.2"/>' +
+          '<path d="M11 11 L19 19 M16 16 L19 13" stroke="' + (fillAmt > 0 ? "#0b2a4a" : "#e8d9a8") + '" stroke-width="2.2" stroke-linecap="round"/>' +
+        '</svg>' +
+      '</div>' +
+      '<span class="hour-num">' + i + '</span>';
+    row.appendChild(slot);
+  }
+  /* stagger the fill animation */
+  requestAnimationFrame(() => {
+    row.querySelectorAll(".key-slot").forEach((slot, idx) => {
+      const fill = slot.querySelector(".fill");
+      const target = fill.style.transform;
+      fill.style.transform = "translateY(100%)";
+      setTimeout(() => { fill.style.transform = target; }, 120 * idx);
+    });
+  });
+
+  document.getElementById("approvedHours").textContent = fmtHrs(approved);
+  document.getElementById("pendingHours").textContent = fmtHrs(pending);
+  document.getElementById("remainingHours").textContent = fmtHrs(remaining);
+  document.getElementById("chipApproved").classList.toggle("done", approved >= effectiveGoal);
+  const mChip = document.getElementById("chipMeetings");
+  if (typeof data.meetingsAttended === "number"){
+    mChip.style.display = "block";
+    document.getElementById("meetingsAttended").textContent = data.meetingsAttended;
+  } else {
+    mChip.style.display = "none";
+  }
+  const oChip = document.getElementById("chipOwed");
+  if (owed > 0){
+    oChip.style.display = "block";
+    document.getElementById("owedHours").textContent = fmtHrs(owed);
+  } else {
+    oChip.style.display = "none";
+  }
+
+  const note = document.getElementById("goalNote");
+  if (approved >= effectiveGoal){
+    note.innerHTML = "<strong>You've hit your " + fmtHrs(effectiveGoal) + " hours — nice work.</strong> Every hour past the goal still counts toward club awards.";
+  } else if (approved + pending >= effectiveGoal){
+    note.innerHTML = "You're at the goal <strong>once your pending hours are approved</strong>. Keep an eye on your history below.";
+  } else {
+    note.innerHTML = "You need <strong>" + fmtHrs(remaining) + " more approved " + (remaining === 1 ? "hour" : "hours") + "</strong> this semester. Check the opportunities below.";
+  }
+  if (owed > 0){
+    note.innerHTML += " <strong>" + fmtHrs(owed) + " " + (owed === 1 ? "hour" : "hours") + "</strong> of that is a makeup requirement from a missed meeting.";
+  }
+
+  /* history */
+  const hist = document.getElementById("historySection");
+  const body = document.getElementById("historyBody");
+  body.innerHTML = "";
+  if (entries.length){
+    hist.style.display = "block";
+    entries.slice().sort((a,b) => parseDay(b.date) - parseDay(a.date)).forEach(e => {
+      const tr = document.createElement("tr");
+      const st = String(e.status || "Pending");
+      tr.innerHTML =
+        "<td>" + esc(fmtDate(e.date)) + "</td>" +
+        "<td>" + esc(e.event) + "</td>" +
+        '<td class="hrs">' + fmtHrs(Number(e.hours || 0)) + "</td>" +
+        '<td><span class="status-pill ' + st.toLowerCase() + '">' + esc(st) + "</span></td>";
+      body.appendChild(tr);
+    });
+  } else {
+    hist.style.display = "none";
+  }
+}
+
+function signOut(){
+  currentStudent = null;
+  storeRemove("nhs_student_number");
+  document.getElementById("progressView").style.display = "none";
+  document.getElementById("loginView").style.display = "block";
+  document.getElementById("studentNumberInput").value = "";
+}
+
+/* ---------------- opportunities ---------------- */
+async function loadOpportunities(){
+  const grid = document.getElementById("oppsGrid");
+  let opps;
+  try {
+    const data = await apiCall({ action:"opportunities" });
+    opps = data.success ? data.opportunities : [];
+    renderAnnualGoal(data.annualGoal, data.annualApproved);
+  } catch(e){
+    opps = (e.message === "DEMO") ? DEMO.opportunities : null;
+    if (e.message === "DEMO"){ renderAnnualGoal(DEMO.annualGoal, DEMO.annualApproved); }
+  }
+  grid.innerHTML = "";
+  if (opps === null){
+    grid.innerHTML = '<div class="opps-empty">Couldn\'t load opportunities right now. Refresh to try again.</div>';
+    return;
+  }
+  if (!opps.length){
+    grid.innerHTML = '<div class="opps-empty">No opportunities posted yet — check back soon, or ask an officer what\'s coming up.</div>';
+    return;
+  }
+  opps.forEach(o => {
+    const card = document.createElement("div");
+    card.className = "opp-card";
+    card.innerHTML =
+      '<div class="opp-top"><h3>' + esc(o.title) + '</h3>' +
+      (o.hours ? '<span class="hrs-badge">' + esc(o.hours) + '</span>' : '') + '</div>' +
+      '<div class="opp-meta">' +
+        (o.org ? '<span><span class="k">Org</span>' + esc(o.org) + '</span>' : '') +
+        (o.date ? '<span><span class="k">When</span>' + esc(o.date) + (o.time ? ' · ' + esc(o.time) : '') + '</span>' : '') +
+        (o.location ? '<span><span class="k">Where</span>' + esc(o.location) + '</span>' : '') +
+      '</div>' +
+      (o.description ? '<p class="opp-desc">' + esc(o.description) + '</p>' : '') +
+      (o.contact ? '<div class="opp-contact"><strong>To sign up:</strong> ' + esc(o.contact) + '</div>' : '');
+    grid.appendChild(card);
+  });
+}
+
+/* ---------------- annual goal banner ---------------- */
+function renderAnnualGoal(goal, approved){
+  const wrap = document.getElementById("annualGoalProgress");
+  const g = Number(goal);
+  const a = Math.max(0, Number(approved) || 0);
+  if (!g || g <= 0){ wrap.style.display = "none"; return; }
+  const pct = Math.min(100, (a / g) * 100);
+  document.getElementById("annualGoalText").textContent = fmtHrs(a) + " / " + fmtHrs(g) + " hrs";
+  document.getElementById("annualGoalBar").style.width = pct + "%";
+  wrap.style.display = "block";
+}
+
+/* ---------------- utils ---------------- */
+function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function fmtHrs(n){ return (Math.round(n * 4) / 4).toString(); }
+
+/* Date-only strings ("2026-01-24") parse as UTC midnight and can display a
+   day early in US timezones — anchor them to local noon instead. */
+function parseDay(d){
+  const s = String(d ?? "");
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? new Date(s + "T12:00:00") : new Date(s);
+}
+function fmtDate(d){
+  const dt = parseDay(d);
+  if (isNaN(dt)) return String(d ?? "");
+  return dt.toLocaleDateString("en-US",{ month:"short", day:"numeric" });
+}
+
+/* ---------------- init ---------------- */
+loadOpportunities();
+const savedNum = storeGet("nhs_student_number");
+if (savedNum){
+  document.getElementById("studentNumberInput").value = savedNum;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NHS — Submit Hours</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&family=Spline+Sans+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0b2a4a;
+    --navy-2:#123a63;
+    --blue:#1d5c8f;
+    --gold:#c9a227;
+    --gold-bright:#e3ba45;
+    --gold-soft:#e8d9a8;
+    --gold-deep:#8f6f14;
+    --ink:#16202b;
+    --ink-soft:#5b6674;
+    --ink-faint:#8b96a3;
+    --glass-light-border:rgba(11,42,74,.12);
+    --green:#1e7a49;
+    --red:#b3383f;
+    --radius:22px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Public Sans',system-ui,sans-serif;
+    background:#eef1f6;
+    color:var(--ink);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  ::selection{background:rgba(201,162,39,.35);}
+
+  /* ---------- light glass primitives (sit on the host page) ---------- */
+  .card, header{
+    background:linear-gradient(155deg, rgba(255,255,255,.82) 0%, rgba(255,255,255,.6) 100%);
+    -webkit-backdrop-filter:blur(18px) saturate(150%);
+    backdrop-filter:blur(18px) saturate(150%);
+    border:1px solid var(--glass-light-border);
+    box-shadow:
+      0 18px 44px -20px rgba(11,42,74,.28),
+      inset 0 1px 0 rgba(255,255,255,.9);
+    position:relative;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    position:sticky;top:0;z-index:50;
+    border-radius:0 0 18px 18px;
+    border-top:none;
+  }
+  .header-inner{
+    max-width:1080px;margin:0 auto;
+    padding:15px 20px;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:center;gap:14px;}
+  .brand-key{
+    width:46px;height:46px;flex:none;border-radius:50%;
+    background:radial-gradient(circle at 32% 28%, var(--gold-bright), var(--gold) 60%, #a67f1c 100%);
+    display:grid;place-items:center;
+    box-shadow:0 6px 16px -6px rgba(201,162,39,.6), inset 0 1px 1px rgba(255,255,255,.6), inset 0 -2px 4px rgba(90,60,0,.3);
+  }
+  .brand-key svg{display:block;}
+  .brand h1{
+    font-family:'Zilla Slab',serif;font-weight:700;font-size:1.35rem;letter-spacing:.01em;line-height:1.1;color:var(--navy);
+  }
+  .brand .sub{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-deep);font-weight:700;}
+
+  .site-nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .site-nav a{
+    font-family:'Public Sans',sans-serif;font-weight:700;font-size:.85rem;
+    color:var(--ink-soft);text-decoration:none;padding:8px 14px;border-radius:999px;
+    transition:color .15s,background .15s;
+  }
+  .site-nav a:hover{color:var(--navy);background:rgba(11,42,74,.06);}
+  .site-nav a.active{color:var(--navy);background:rgba(201,162,39,.16);}
+
+  /* ---------- layout ---------- */
+  main{max-width:1080px;margin:0 auto;padding:30px 20px 60px;}
+  .section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+  .section-head h2{
+    font-family:'Zilla Slab',serif;font-weight:700;font-size:1.6rem;color:var(--navy);
+  }
+  .section-head .tag{
+    font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--gold-deep);
+    background:rgba(201,162,39,.16);
+    border:1px solid rgba(201,162,39,.35);
+    padding:4px 12px;border-radius:999px;
+  }
+  .section-head p{width:100%;color:var(--ink-soft);font-size:.92rem;max-width:60ch;}
+
+  .card{padding:26px;border-radius:var(--radius);}
+
+  .btn{
+    font-family:'Public Sans',sans-serif;font-weight:700;font-size:.9rem;
+    padding:13px 24px;border-radius:14px;border:none;cursor:pointer;
+    transition:transform .12s,filter .18s,box-shadow .18s;
+    position:relative;overflow:hidden;
+  }
+  .btn-spinner{
+    display:inline-block;width:14px;height:14px;margin-right:8px;vertical-align:-2px;
+    border:2px solid currentColor;border-right-color:transparent;border-radius:50%;
+    animation:btn-spin .6s linear infinite;opacity:.85;
+  }
+  @keyframes btn-spin{ to{ transform:rotate(360deg); } }
+  @media (prefers-reduced-motion:reduce){ .btn-spinner{animation:none;border-style:dotted;} }
+  .btn::after{
+    content:"";position:absolute;inset:0 0 55% 0;border-radius:inherit;
+    background:linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0));
+    pointer-events:none;
+  }
+  .btn:active{transform:scale(.97);}
+  .btn-navy{
+    background:linear-gradient(160deg, var(--navy-2) 0%, var(--navy) 100%);
+    color:#fff;
+    box-shadow:0 10px 24px -10px rgba(11,42,74,.55), inset 0 1px 0 rgba(255,255,255,.25);
+  }
+  .btn-navy:hover{filter:brightness(1.15);}
+  .btn:disabled{opacity:.55;cursor:wait;}
+  .btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+
+  /* ---------- form ---------- */
+  .submit-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .field{display:flex;flex-direction:column;gap:7px;min-width:0;}
+  .field.full{grid-column:1/-1;}
+  .field label{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--navy);}
+  .field input,.field textarea{
+    width:100%;min-width:0;
+    font-family:'Public Sans',sans-serif;font-size:1rem;
+    padding:12px 15px;border-radius:12px;
+    border:1px solid var(--glass-light-border);
+    background:rgba(255,255,255,.75);
+    box-shadow:inset 0 1px 2px rgba(11,42,74,.06);
+    color:var(--ink);
+  }
+  .field input::placeholder,.field textarea::placeholder{color:var(--ink-faint);}
+  .field input:focus,.field textarea:focus{outline:2px solid var(--blue);outline-offset:1px;background:#fff;}
+  .field textarea{resize:vertical;min-height:90px;}
+  .field .hint{font-size:.76rem;color:var(--ink-faint);}
+  .field input.mono{font-family:'Spline Sans Mono',monospace;letter-spacing:.05em;}
+
+  .photo-drop{
+    border:1.5px dashed rgba(201,162,39,.55);border-radius:14px;
+    background:rgba(255,255,255,.55);
+    cursor:pointer;transition:border-color .15s,background .15s;overflow:hidden;
+  }
+  .photo-drop:hover{border-color:var(--gold-deep);background:rgba(255,255,255,.8);}
+  .photo-drop:focus-within{outline:2px solid var(--blue);outline-offset:1px;}
+  .photo-empty{display:flex;align-items:center;gap:12px;padding:17px;font-size:.86rem;color:var(--ink-soft);}
+  .photo-empty svg{flex:none;}
+  .photo-empty strong{color:var(--navy);}
+  .photo-preview{display:none;align-items:center;gap:14px;padding:10px 14px 10px 10px;}
+  .photo-preview img{width:74px;height:74px;object-fit:cover;border-radius:10px;border:1px solid var(--glass-light-border);
+    box-shadow:0 6px 16px -8px rgba(11,42,74,.35);}
+  .photo-preview-info{display:flex;flex-direction:column;gap:4px;min-width:0;}
+  .photo-preview-info span{font-size:.82rem;color:var(--ink);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:52vw;}
+  .photo-remove{align-self:flex-start;background:none;border:none;color:var(--red);font-size:.78rem;font-weight:700;cursor:pointer;padding:2px 0;text-decoration:underline;text-underline-offset:3px;}
+  .photo-drop.has-photo .photo-empty{display:none;}
+  .photo-drop.has-photo .photo-preview{display:flex;}
+
+  .submit-actions{grid-column:1/-1;display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:6px;}
+  .form-msg{font-size:.88rem;font-weight:600;display:none;}
+  .form-msg.ok{color:var(--green);display:block;}
+  .form-msg.err{color:var(--red);display:block;}
+  .verify-note{
+    margin-top:18px;font-size:.82rem;color:var(--ink-soft);
+    background:rgba(201,162,39,.12);
+    border:1px solid rgba(201,162,39,.3);
+    border-radius:12px;padding:13px 17px;
+  }
+  .verify-note strong{color:var(--gold-deep);}
+
+  footer{
+    border-top:1px solid rgba(11,42,74,.12);padding:26px 20px 42px;text-align:center;
+    font-size:.8rem;color:var(--ink-soft);
+  }
+  footer .motto{font-family:'Zilla Slab',serif;font-style:italic;color:var(--navy);font-size:.95rem;margin-bottom:5px;}
+  footer .sponsor{margin-top:10px;font-size:.76rem;color:var(--ink-faint);}
+  footer .sponsor a{color:var(--gold-deep);font-weight:700;text-decoration:none;}
+  footer .sponsor a:hover{text-decoration:underline;}
+
+  @media (max-width:640px){
+    .submit-grid{grid-template-columns:1fr;}
+    .header-inner{padding:13px 16px;}
+    .card{padding:20px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-key" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2.5c1.8 2.3 2.8 4.1 2.8 5.5a2.8 2.8 0 0 1-5.6 0c0-1.4 1-3.2 2.8-5.5Z" stroke="#0b2a4a" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M9.5 11.5h5l-1.1 8c-.08.59-.58 1-1.16 1h-.48c-.58 0-1.08-.41-1.16-1l-1.1-8Z" stroke="#0b2a4a" stroke-width="1.8" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <h1>NHS</h1>
+        <div class="sub">Submit Hours</div>
+      </div>
+    </div>
+    <nav class="site-nav">
+      <a href="index.html">Home</a>
+      <a href="submit.html" class="active">Submit Hours</a>
+      <a href="officer.html">Officer HQ</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <section id="submit">
+    <div class="section-head">
+      <h2>Submit hours</h2>
+      <span class="tag">Reviewed by an officer</span>
+      <p>Log your service after the event. Hours show as pending until an officer verifies them with your supervisor.</p>
+    </div>
+    <div class="card">
+      <div class="submit-grid">
+        <div class="field">
+          <label for="subStudentNumber">Student number</label>
+          <input type="text" id="subStudentNumber" class="mono" inputmode="numeric" autocomplete="off" placeholder="e.g. 123456">
+        </div>
+        <div class="field">
+          <label for="subHours">Hours served</label>
+          <input type="number" id="subHours" min="0.25" max="24" step="0.25" placeholder="e.g. 2.5">
+          <span class="hint">Quarter-hour increments are fine.</span>
+        </div>
+        <div class="field full">
+          <label for="subDate">Date of service</label>
+          <input type="date" id="subDate" style="max-width:260px;">
+        </div>
+        <div class="field full">
+          <label for="subEvent">Event / activity</label>
+          <input type="text" id="subEvent" placeholder="e.g. Food bank sorting shift" maxlength="100">
+        </div>
+        <div class="field">
+          <label for="subSupervisor">Supervisor name</label>
+          <input type="text" id="subSupervisor" placeholder="Who oversaw your service?" maxlength="80">
+        </div>
+        <div class="field">
+          <label for="subContact">Supervisor contact</label>
+          <input type="text" id="subContact" placeholder="Email or phone — used to verify your hours" maxlength="120">
+        </div>
+        <div class="field full">
+          <label for="subDesc">What did you do?</label>
+          <textarea id="subDesc" placeholder="One or two sentences describing your service." maxlength="500"></textarea>
+        </div>
+        <div class="field full">
+          <label for="subPhoto">Verification photo</label>
+          <div class="photo-drop" id="photoDrop" onclick="document.getElementById('subPhoto').click()">
+            <input type="file" id="subPhoto" accept="image/*" hidden onchange="handlePhoto(this)">
+            <div class="photo-empty" id="photoEmpty">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="3" y="6" width="18" height="14" rx="2.5" stroke="#0b2a4a" stroke-width="1.8"/>
+                <path d="M8.5 6 L10 3.5 H14 L15.5 6" stroke="#0b2a4a" stroke-width="1.8" stroke-linejoin="round"/>
+                <circle cx="12" cy="13" r="3.5" stroke="#0b2a4a" stroke-width="1.8"/>
+              </svg>
+              <span><strong>Tap to add a photo</strong> — you at the event, a sign-in sheet, or a signed form</span>
+            </div>
+            <div class="photo-preview" id="photoPreview">
+              <img id="photoImg" alt="Verification photo preview">
+              <div class="photo-preview-info">
+                <span id="photoName"></span>
+                <button type="button" class="photo-remove" onclick="removePhoto(event)">Remove</button>
+              </div>
+            </div>
+          </div>
+          <span class="hint">Required. Photos are compressed on your phone before upload, so this works fine on data.</span>
+        </div>
+        <div class="submit-actions">
+          <button class="btn btn-navy" id="submitBtn" onclick="submitHours()">Submit for review</button>
+          <span class="form-msg" id="submitMsg"></span>
+        </div>
+      </div>
+      <div class="verify-note">
+        <strong>Heads up:</strong> officers may contact your supervisor to confirm hours. Submissions that can't be verified will be marked denied and won't count toward your goal.
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="motto">Scholarship · Service · Leadership · Character</div>
+  <div>NHS service hours are due by the end of each semester. Questions? Talk to an NHS officer or your adviser.</div>
+  <div class="sponsor">Sponsored by <a href="https://everydetail.co" target="_blank" rel="noopener">Every Detail</a></div>
+</footer>
+
+<script>
+/* ================================================================
+   CONFIG — same Apps Script Web App URL as the other NHS pages.
+   Leave blank to preview with demo (no-op) submission behavior.
+   ================================================================ */
+const API_URL = "https://script.google.com/macros/s/AKfycbyKO921qNx2eoUqvxByGZ1zbqLZKvW2ZCimIDBYivK1wQxnr686nfGX82zZimAZ4wg/exec";
+
+/* ---------------- button loading state ----------------
+   Every async button gets a spinner + label, not just disabled text. */
+function setBtnLoading(btn, label){
+  if (!btn) return;
+  if (btn.dataset.originalHtml === undefined) btn.dataset.originalHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span>' + label;
+}
+function clearBtnLoading(btn, label){
+  if (!btn) return;
+  btn.disabled = false;
+  btn.innerHTML = (label !== undefined) ? label : (btn.dataset.originalHtml || btn.textContent);
+  delete btn.dataset.originalHtml;
+}
+
+/* All three pages share one real origin now (no more sandboxed Sites
+   embeds), so this reliably carries the student number over from the
+   Home page. Kept in a try/catch anyway since some browsers still block
+   storage in certain privacy modes. */
+function storeGet(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
+function storeSet(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
+
+/* ---------------- verification photo ---------------- */
+let photoData = null; // { base64, type, name }
+
+async function handlePhoto(input){
+  const file = input.files && input.files[0];
+  if (!file) return;
+  if (!file.type.startsWith("image/")){
+    showSubmitMsg("err","That file isn't an image — take a photo or pick one from your camera roll.");
+    input.value = "";
+    return;
+  }
+  try {
+    photoData = await compressImage(file);
+    document.getElementById("photoImg").src = "data:" + photoData.type + ";base64," + photoData.base64;
+    document.getElementById("photoName").textContent = file.name || "photo.jpg";
+    document.getElementById("photoDrop").classList.add("has-photo");
+  } catch(e){
+    showSubmitMsg("err","Couldn't read that photo. Try a different one.");
+    input.value = "";
+  }
+}
+
+function removePhoto(ev){
+  ev.stopPropagation();
+  photoData = null;
+  document.getElementById("subPhoto").value = "";
+  document.getElementById("photoDrop").classList.remove("has-photo");
+}
+
+/** Resize + re-encode as JPEG. Photos are stored in the spreadsheet, so we
+    target a small payload: pass 1 at 1000px/q.65, and if the base64 is still
+    over ~400k chars, pass 2 at 720px/q.55. */
+function compressImage(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("read failed"));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("decode failed"));
+      img.onload = () => {
+        const encode = (maxPx, quality) => {
+          let { width, height } = img;
+          if (width > maxPx || height > maxPx){
+            const scale = maxPx / Math.max(width, height);
+            width = Math.round(width * scale);
+            height = Math.round(height * scale);
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width; canvas.height = height;
+          canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+          return canvas.toDataURL("image/jpeg", quality).split(",")[1];
+        };
+        let base64 = encode(1000, 0.65);
+        if (base64.length > 400000) base64 = encode(720, 0.55);
+        resolve({ base64, type: "image/jpeg", name: file.name });
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/* POST helper — photos are too big for GET/JSONP. Body is sent as text/plain,
+   which is a CORS "simple request": no preflight, and Apps Script's response
+   is readable cross-origin. */
+async function apiPost(payload){
+  if (!API_URL) throw new Error("DEMO");
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) throw new Error("Upload failed (" + res.status + "). Try again.");
+  return res.json();
+}
+
+/* ---------------- submit hours ---------------- */
+async function submitHours(){
+  const btn = document.getElementById("submitBtn");
+  const msg = document.getElementById("submitMsg");
+  msg.className = "form-msg";
+
+  const payload = {
+    action: "submitHours",
+    studentNumber: document.getElementById("subStudentNumber").value.trim(),
+    date: document.getElementById("subDate").value,
+    event: document.getElementById("subEvent").value.trim(),
+    hours: document.getElementById("subHours").value,
+    supervisor: document.getElementById("subSupervisor").value.trim(),
+    contact: document.getElementById("subContact").value.trim(),
+    description: document.getElementById("subDesc").value.trim()
+  };
+
+  /* validation */
+  if (!/^\d{3,12}$/.test(payload.studentNumber)) return showSubmitMsg("err","Enter a valid student number.");
+  if (!payload.date) return showSubmitMsg("err","Pick the date you served.");
+  if (payload.date > todayLocalISO()) return showSubmitMsg("err","Service date can't be in the future.");
+  if (!payload.event) return showSubmitMsg("err","Name the event or activity.");
+  const hrs = Number(payload.hours);
+  if (!hrs || hrs < 0.25 || hrs > 24) return showSubmitMsg("err","Hours must be between 0.25 and 24.");
+  if (!payload.supervisor) return showSubmitMsg("err","Add your supervisor's name.");
+  if (!payload.contact) return showSubmitMsg("err","Add a supervisor contact so officers can verify.");
+  if (!photoData) return showSubmitMsg("err","Add a verification photo — it's required for hours to be approved.");
+
+  payload.photoBase64 = photoData.base64;
+  payload.photoType = photoData.type;
+
+  setBtnLoading(btn, "Uploading…");
+  try {
+    let data;
+    try {
+      data = await apiPost(payload);
+    } catch(e){
+      if (e.message === "DEMO"){ data = { success:true }; }
+      else throw e;
+    }
+    if (!data.success){ showSubmitMsg("err", data.error || "Something went wrong. Try again."); return; }
+    showSubmitMsg("ok","Submitted! Your hours and photo are pending officer review.");
+    storeSet("nhs_student_number", payload.studentNumber);
+    ["subDate","subEvent","subHours","subSupervisor","subContact","subDesc"].forEach(id => document.getElementById(id).value = "");
+    removePhoto({ stopPropagation: () => {} });
+  } catch(e){
+    showSubmitMsg("err", e.message);
+  } finally {
+    clearBtnLoading(btn, "Submit for review");
+  }
+}
+
+function showSubmitMsg(type, text){
+  const msg = document.getElementById("submitMsg");
+  msg.className = "form-msg " + type;
+  msg.textContent = text;
+  if (type === "ok") setTimeout(() => { msg.className = "form-msg"; }, 6000);
+  return false;
+}
+
+function todayLocalISO(){
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+
+/* ---------------- init ---------------- */
+document.getElementById("subDate").max = todayLocalISO();
+const savedNum = storeGet("nhs_student_number");
+if (savedNum) document.getElementById("subStudentNumber").value = savedNum;
+</script>
+</body>
+</html>

@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NHS — Officer HQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&family=Spline+Sans+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0b2a4a;
+    --navy-2:#123a63;
+    --blue:#1d5c8f;
+    --gold:#c9a227;
+    --gold-bright:#e3ba45;
+    --gold-soft:#e8d9a8;
+    --gold-deep:#8f6f14;
+    --ink:#16202b;
+    --ink-soft:#5b6674;
+    --ink-faint:#8b96a3;
+    --glass-light-border:rgba(11,42,74,.12);
+    --green:#1e7a49;
+    --red:#b3383f;
+    --radius:22px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Public Sans',system-ui,sans-serif;
+    background:#eef1f6;
+    color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh;
+  }
+  ::selection{background:rgba(201,162,39,.35);}
+
+  /* ---------- light glass primitive (matches member dashboard) ---------- */
+  .gate, .stat, .q-card, .table-wrap, .panel, .opp-row, .empty-state, header{
+    background:linear-gradient(155deg, rgba(255,255,255,.82) 0%, rgba(255,255,255,.6) 100%);
+    -webkit-backdrop-filter:blur(18px) saturate(150%);
+    backdrop-filter:blur(18px) saturate(150%);
+    border:1px solid var(--glass-light-border);
+    box-shadow:
+      0 18px 44px -20px rgba(11,42,74,.28),
+      inset 0 1px 0 rgba(255,255,255,.9);
+    position:relative;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    position:sticky;top:0;z-index:50;
+    border-radius:0 0 18px 18px;border-top:none;
+  }
+  .header-inner{max-width:1180px;margin:0 auto;padding:15px 20px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+  .brand{display:flex;align-items:center;gap:13px;}
+  .brand-key{width:46px;height:46px;flex:none;border-radius:50%;
+    background:radial-gradient(circle at 32% 28%, var(--gold-bright), var(--gold) 60%, #a67f1c 100%);
+    display:grid;place-items:center;
+    box-shadow:0 6px 16px -6px rgba(201,162,39,.6), inset 0 1px 1px rgba(255,255,255,.6), inset 0 -2px 4px rgba(90,60,0,.3);}
+  .brand h1{font-family:'Zilla Slab',serif;font-weight:700;font-size:1.25rem;line-height:1.1;color:var(--navy);}
+  .brand .sub{font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold-deep);font-weight:700;}
+  .header-right{display:flex;align-items:center;gap:12px;}
+  .site-nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .site-nav a{
+    font-family:'Public Sans',sans-serif;font-weight:700;font-size:.85rem;
+    color:var(--ink-soft);text-decoration:none;padding:8px 14px;border-radius:999px;
+    transition:color .15s,background .15s;
+  }
+  .site-nav a:hover{color:var(--navy);background:rgba(11,42,74,.06);}
+  .site-nav a.active{color:var(--navy);background:rgba(201,162,39,.16);}
+  .semester-chip{display:none;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--gold-deep);background:rgba(201,162,39,.16);border:1px solid rgba(201,162,39,.35);padding:5px 12px;border-radius:999px;}
+  .lock-btn{display:none;background:rgba(255,255,255,.5);border:1px solid var(--glass-light-border);color:var(--ink-soft);font-size:.78rem;font-weight:700;padding:7px 14px;border-radius:999px;cursor:pointer;}
+  .lock-btn:hover{color:var(--navy);border-color:var(--navy);}
+
+  main{max-width:1180px;margin:0 auto;padding:26px 20px 90px;}
+
+  /* ---------- PIN gate ---------- */
+  .gate{max-width:420px;margin:60px auto;border-radius:var(--radius);padding:34px 30px;text-align:center;}
+  .gate h2{font-family:'Zilla Slab',serif;color:var(--navy);font-size:1.4rem;margin-bottom:6px;}
+  .gate p{color:var(--ink-soft);font-size:.9rem;margin-bottom:20px;}
+  .gate input{
+    width:100%;text-align:center;font-family:'Spline Sans Mono',monospace;font-size:1.4rem;font-weight:600;letter-spacing:.4em;
+    padding:13px;border-radius:12px;border:1px solid var(--glass-light-border);background:rgba(255,255,255,.75);color:var(--ink);
+    box-shadow:inset 0 1px 2px rgba(11,42,74,.06);
+  }
+  .gate input:focus{outline:2px solid var(--gold);outline-offset:1px;background:#fff;}
+  .gate .btn{width:100%;margin-top:14px;}
+  .gate-error{display:none;margin-top:12px;font-size:.85rem;font-weight:600;color:var(--red);}
+
+  /* ---------- buttons (matches member dashboard) ---------- */
+  .btn{
+    font-family:'Public Sans',sans-serif;font-weight:700;font-size:.88rem;
+    padding:11px 20px;border-radius:14px;border:none;cursor:pointer;
+    transition:transform .12s,filter .18s;position:relative;overflow:hidden;
+  }
+  .btn-spinner{
+    display:inline-block;width:14px;height:14px;margin-right:8px;vertical-align:-2px;
+    border:2px solid currentColor;border-right-color:transparent;border-radius:50%;
+    animation:btn-spin .6s linear infinite;opacity:.85;
+  }
+  @keyframes btn-spin{ to{ transform:rotate(360deg); } }
+  @media (prefers-reduced-motion:reduce){ .btn-spinner{animation:none;border-style:dotted;} }
+  .btn::after{content:"";position:absolute;inset:0 0 55% 0;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,0));pointer-events:none;}
+  .btn:active{transform:scale(.97);}
+  .btn:disabled{opacity:.55;cursor:wait;}
+  .btn-gold{background:linear-gradient(160deg,var(--gold-bright) 0%,var(--gold) 55%,#a5831c 100%);color:#241a04;box-shadow:0 10px 24px -10px rgba(201,162,39,.7), inset 0 1px 1px rgba(255,255,255,.5);}
+  .btn-gold:hover{filter:brightness(1.07);}
+  .btn-navy{background:linear-gradient(160deg,var(--navy-2) 0%,var(--navy) 100%);color:#fff;box-shadow:0 10px 24px -10px rgba(11,42,74,.55), inset 0 1px 0 rgba(255,255,255,.25);}
+  .btn-navy:hover{filter:brightness(1.15);}
+  .btn-approve{background:linear-gradient(160deg,#2b9560,var(--green));color:#fff;box-shadow:0 8px 18px -8px rgba(30,122,73,.6), inset 0 1px 0 rgba(255,255,255,.25);}
+  .btn-approve:hover{filter:brightness(1.08);}
+  .btn-deny{background:rgba(255,255,255,.65);color:var(--red);border:1.5px solid var(--red);}
+  .btn-deny:hover{background:rgba(179,56,63,.1);}
+  .btn-sm{padding:8px 14px;font-size:.8rem;border-radius:11px;}
+  .btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+
+  /* ---------- dashboard shell ---------- */
+  #dashboard{display:none;}
+  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px;}
+  .stat{border-radius:var(--radius);padding:16px 18px;}
+  .stat .v{font-family:'Spline Sans Mono',monospace;font-size:1.7rem;font-weight:600;color:var(--navy);line-height:1.1;}
+  .stat .l{font-size:.68rem;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;margin-top:3px;}
+  .stat.hot .v{color:var(--gold-deep);}
+
+  .tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;border-bottom:2px solid rgba(11,42,74,.14);padding-bottom:0;}
+  .tab-btn{
+    background:none;border:none;cursor:pointer;font-family:'Public Sans',sans-serif;
+    font-size:.9rem;font-weight:700;color:var(--ink-soft);padding:10px 16px;
+    border-bottom:3px solid transparent;margin-bottom:-2px;transition:color .15s,border-color .15s;
+  }
+  .tab-btn:hover{color:var(--navy);}
+  .tab-btn.active{color:var(--navy);border-bottom-color:var(--gold);}
+  .tab-btn .count{
+    display:inline-block;margin-left:6px;font-family:'Spline Sans Mono',monospace;font-size:.72rem;font-weight:600;
+    background:var(--red);color:#fff;border-radius:999px;padding:1px 8px;vertical-align:1px;
+  }
+  .tab-btn .count.zero{background:var(--ink-faint);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  /* ---------- review queue ---------- */
+  .bulk-bar{
+    display:none;align-items:center;gap:12px;flex-wrap:wrap;
+    background:linear-gradient(160deg, rgba(11,42,74,.96) 0%, rgba(18,58,99,.93) 100%);
+    -webkit-backdrop-filter:blur(18px) saturate(150%);backdrop-filter:blur(18px) saturate(150%);
+    border:1px solid rgba(11,42,74,.5);
+    color:#fff;border-radius:16px;padding:10px 16px;margin-bottom:16px;
+    position:sticky;top:78px;z-index:20;
+    box-shadow:0 26px 60px -22px rgba(11,42,74,.55), inset 0 1px 0 rgba(255,255,255,.18);
+  }
+  .bulk-bar.show{display:flex;}
+  .bulk-bar .n{font-family:'Spline Sans Mono',monospace;font-weight:600;color:var(--gold-soft);}
+  .bulk-bar .spacer{flex:1;}
+  .bulk-clear{background:none;border:none;color:var(--gold-soft);font-size:.8rem;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
+  .bulk-clear:hover{color:#fff;}
+
+  .queue{display:flex;flex-direction:column;gap:14px;}
+  .q-card{
+    border-left:5px solid var(--gold);
+    border-radius:var(--radius);padding:18px 20px;
+    display:grid;grid-template-columns:auto 1fr;gap:14px;
+    transition:opacity .3s, transform .3s;
+  }
+  .q-card.leaving{opacity:0;transform:translateX(24px);}
+  .q-check{padding-top:3px;}
+  .q-check input{width:19px;height:19px;accent-color:var(--navy);cursor:pointer;}
+  .q-main{min-width:0;}
+  .q-top{display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap;margin-bottom:6px;}
+  .q-student{font-family:'Zilla Slab',serif;font-weight:600;font-size:1.08rem;color:var(--navy);}
+  .q-student .num{font-family:'Spline Sans Mono',monospace;font-size:.76rem;color:var(--ink-faint);font-weight:500;margin-left:8px;letter-spacing:.05em;}
+  .q-hours{font-family:'Spline Sans Mono',monospace;font-weight:600;font-size:1rem;color:var(--gold-deep);
+    background:rgba(201,162,39,.16);border:1px solid rgba(201,162,39,.4);padding:3px 12px;border-radius:9px;white-space:nowrap;}
+  .q-event{font-weight:600;font-size:.95rem;margin-bottom:8px;}
+  .q-event .date{font-weight:500;color:var(--ink-soft);font-size:.85rem;}
+  .q-detail{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:6px 20px;font-size:.85rem;color:var(--ink-soft);margin-bottom:10px;}
+  .q-detail b{color:var(--ink);font-weight:600;}
+  .q-desc{font-size:.87rem;color:var(--ink);background:rgba(255,255,255,.55);border:1px solid var(--glass-light-border);border-radius:10px;padding:9px 13px;margin-bottom:12px;}
+  .q-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .q-note{flex:1;min-width:180px;font-family:'Public Sans',sans-serif;font-size:1rem;padding:9px 12px;border-radius:10px;
+    border:1px solid var(--glass-light-border);background:rgba(255,255,255,.75);box-shadow:inset 0 1px 2px rgba(11,42,74,.06);}
+  .q-note:focus{outline:2px solid var(--blue);outline-offset:1px;background:#fff;}
+  .photo-link{
+    display:inline-flex;align-items:center;gap:6px;font-size:.82rem;font-weight:700;color:var(--blue);
+    text-decoration:none;border:1.5px solid var(--blue);border-radius:10px;padding:7px 13px;background:rgba(255,255,255,.5);
+  }
+  .photo-link:hover{background:rgba(29,92,143,.12);}
+  .photo-link.none{color:var(--ink-faint);border-color:var(--glass-light-border);pointer-events:none;}
+  .empty-state{border-style:dashed;border-radius:var(--radius);padding:44px 20px;text-align:center;color:var(--ink-soft);font-size:.92rem;}
+  .empty-state .big{font-family:'Zilla Slab',serif;font-size:1.15rem;color:var(--navy);display:block;margin-bottom:4px;}
+
+  /* ---------- all submissions / roster tables ---------- */
+  .filter-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+  .filter-row input,.filter-row select{
+    font-family:'Public Sans',sans-serif;font-size:1rem;padding:10px 13px;border-radius:12px;
+    border:1px solid var(--glass-light-border);background:rgba(255,255,255,.75);color:var(--ink);
+    box-shadow:inset 0 1px 2px rgba(11,42,74,.06);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  }
+  .filter-row input{flex:1;min-width:200px;}
+  .filter-row input:focus,.filter-row select:focus{outline:2px solid var(--blue);outline-offset:1px;background:#fff;}
+  .table-wrap{border-radius:var(--radius);overflow:hidden;}
+  .table-scroll{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:.85rem;}
+  th{text-align:left;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;padding:11px 14px;
+    background:rgba(11,42,74,.05);border-bottom:1px solid var(--glass-light-border);white-space:nowrap;}
+  td{padding:11px 14px;border-bottom:1px solid rgba(11,42,74,.08);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  td.mono{font-family:'Spline Sans Mono',monospace;font-weight:600;white-space:nowrap;}
+  .status-pill{font-size:.66rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px;white-space:nowrap;border:1px solid;}
+  .status-pill.approved{background:rgba(30,122,73,.12);color:var(--green);border-color:rgba(30,122,73,.3);}
+  .status-pill.pending{background:rgba(201,162,39,.14);color:var(--gold-deep);border-color:rgba(201,162,39,.35);}
+  .status-pill.denied{background:rgba(179,56,63,.1);color:var(--red);border-color:rgba(179,56,63,.3);}
+  .row-flip{background:none;border:none;color:var(--blue);font-size:.76rem;font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:2px 0;white-space:nowrap;}
+  .goal-star{color:var(--gold-deep);font-weight:700;}
+  .mini-bar{height:7px;border-radius:99px;background:rgba(11,42,74,.1);overflow:hidden;min-width:110px;}
+  .mini-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold-bright),var(--gold));border-radius:99px;}
+
+  /* ---------- opportunities ---------- */
+  .opps-layout{display:grid;grid-template-columns:380px 1fr;gap:20px;align-items:start;}
+  .panel{border-radius:var(--radius);padding:22px;}
+  .panel h3{font-family:'Zilla Slab',serif;color:var(--navy);font-size:1.1rem;margin-bottom:14px;}
+  .f{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;min-width:0;}
+  .f label{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--navy);}
+  .f input,.f textarea{width:100%;min-width:0;font-family:'Public Sans',sans-serif;font-size:1rem;padding:10px 13px;border-radius:12px;
+    border:1px solid var(--glass-light-border);background:rgba(255,255,255,.75);color:var(--ink);
+    box-shadow:inset 0 1px 2px rgba(11,42,74,.06);}
+  .f input:focus,.f textarea:focus{outline:2px solid var(--blue);outline-offset:1px;background:#fff;}
+  .f textarea{resize:vertical;min-height:70px;}
+  .f-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .opp-msg{font-size:.85rem;font-weight:600;margin-top:10px;display:none;}
+  .opp-msg.ok{display:block;color:var(--green);}
+  .opp-msg.err{display:block;color:var(--red);}
+  .opp-list{display:flex;flex-direction:column;gap:12px;}
+  .opp-row{
+    border-radius:var(--radius);padding:16px 18px;
+    display:flex;gap:14px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;
+  }
+  .opp-row.inactive{opacity:.55;}
+  .opp-row .info{min-width:0;flex:1;}
+  .opp-row h4{font-family:'Zilla Slab',serif;color:var(--navy);font-size:1rem;margin-bottom:2px;}
+  .opp-row .meta{font-size:.8rem;color:var(--ink-soft);}
+  .opp-row .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .toggle-btn{font-size:.76rem;font-weight:700;padding:7px 13px;border-radius:10px;cursor:pointer;border:1.5px solid;background:rgba(255,255,255,.6);}
+  .toggle-btn.on{color:var(--green);border-color:var(--green);}
+  .toggle-btn.off{color:var(--ink-faint);border-color:var(--glass-light-border);}
+  .del-btn{font-size:.76rem;font-weight:700;padding:7px 13px;border-radius:10px;cursor:pointer;border:1.5px solid var(--red);background:rgba(255,255,255,.6);color:var(--red);}
+  .del-btn:hover{background:rgba(179,56,63,.1);}
+  .live-pill{font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:999px;margin-left:8px;vertical-align:2px;border:1px solid;}
+  .live-pill.on{background:rgba(30,122,73,.12);color:var(--green);border-color:rgba(30,122,73,.3);}
+  .live-pill.off{background:rgba(11,42,74,.06);color:var(--ink-faint);border-color:var(--glass-light-border);}
+  .live-pill.warn{background:rgba(179,56,63,.1);color:var(--red);border-color:rgba(179,56,63,.3);}
+
+  .manual-add{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap;}
+  .manual-add input{
+    font-family:'Spline Sans Mono',monospace;font-size:1rem;padding:8px 12px;border-radius:10px;
+    border:1px solid var(--glass-light-border);background:rgba(255,255,255,.75);color:var(--ink);
+    box-shadow:inset 0 1px 2px rgba(11,42,74,.06);width:170px;
+  }
+  .manual-add input:focus{outline:2px solid var(--blue);outline-offset:1px;background:#fff;}
+  .manual-add .hint{width:100%;font-size:.74rem;color:var(--ink-faint);}
+  .owed-cell{color:var(--red);font-weight:600;}
+  .owed-cell.zero{color:var(--ink-faint);font-weight:500;}
+
+  .qr-overlay{
+    position:absolute;top:0;left:0;width:100%;min-height:100vh;z-index:90;display:none;
+    align-items:flex-start;justify-content:center;
+    background:rgba(11,42,74,.45);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    padding:28px 20px;
+  }
+  .qr-overlay.show{display:flex;}
+  .qr-modal{
+    background:#fff;border-radius:24px;padding:34px 30px 28px;text-align:center;
+    max-width:440px;width:100%;position:relative;
+    box-shadow:0 40px 90px -30px rgba(0,0,0,.6);
+  }
+  .qr-close{position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.7rem;color:var(--ink-faint);cursor:pointer;line-height:1;}
+  .qr-close:hover{color:var(--ink);}
+
+  /* Custom confirm modal — window.confirm() gets silently swallowed inside
+     Wix's sandboxed embed iframe (no allow-modals), so dialogs are hand-rolled. */
+  .confirm-overlay{
+    position:absolute;top:0;left:0;width:100%;min-height:100vh;z-index:95;display:none;
+    align-items:flex-start;justify-content:center;
+    background:rgba(11,42,74,.45);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    padding:28px 20px;
+  }
+  .confirm-overlay.show{display:flex;}
+  .confirm-modal{
+    background:#fff;border-radius:20px;padding:26px 24px;max-width:400px;width:100%;
+    box-shadow:0 40px 90px -30px rgba(0,0,0,.6);
+  }
+  .confirm-modal p{font-size:.94rem;color:var(--ink);line-height:1.5;margin-bottom:18px;}
+  .confirm-actions{display:flex;gap:10px;justify-content:flex-end;}
+  .qr-mtg{font-size:.74rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-deep);margin-bottom:6px;}
+  .qr-code-big{font-family:'Spline Sans Mono',monospace;font-size:3rem;font-weight:600;letter-spacing:.3em;color:var(--navy);margin-bottom:14px;padding-left:.3em;}
+  .qr-modal img{width:min(300px,70vw);height:auto;border:1px solid var(--glass-light-border);border-radius:14px;padding:10px;background:#fff;}
+  .qr-hint{margin-top:14px;font-size:.82rem;color:var(--ink-soft);}
+  .qr-link{display:block;margin-top:6px;font-size:.74rem;color:var(--blue);word-break:break-all;text-decoration:underline;text-underline-offset:3px;}
+  .mtg-code-chip{font-family:'Spline Sans Mono',monospace;font-weight:600;letter-spacing:.18em;color:var(--navy);background:rgba(201,162,39,.16);border:1px solid rgba(201,162,39,.4);padding:3px 12px;border-radius:9px;margin-left:8px;padding-left:calc(12px + .18em);}
+  .att-list{width:100%;margin-top:12px;font-size:.83rem;color:var(--ink-soft);display:none;border-top:1px solid rgba(11,42,74,.1);padding-top:10px;}
+  .att-list.show{display:block;}
+  .att-list b{color:var(--ink);}
+  .att-group{margin-bottom:10px;line-height:1.6;}
+  .att-group:last-child{margin-bottom:0;}
+  .att-tag{display:inline-block;font-size:.64rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:999px;margin-right:8px;border:1px solid;vertical-align:1px;}
+  .att-tag.present{background:rgba(30,122,73,.12);color:var(--green);border-color:rgba(30,122,73,.3);}
+  .att-tag.absent{background:rgba(179,56,63,.1);color:var(--red);border-color:rgba(179,56,63,.3);}
+  .att-present{color:var(--green);}
+  .att-absent{color:var(--red);}
+
+  .toast{
+    position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);
+    background:linear-gradient(160deg, rgba(11,42,74,.97), rgba(18,58,99,.95));
+    -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+    border:1px solid rgba(255,255,255,.18);
+    color:#fff;font-size:.86rem;font-weight:600;
+    padding:12px 22px;border-radius:14px;box-shadow:0 16px 36px -12px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.2);
+    transition:transform .3s cubic-bezier(.2,.8,.3,1);z-index:100;max-width:90vw;text-align:center;
+  }
+  .toast.show{transform:translateX(-50%) translateY(0);}
+  .toast.err{background:linear-gradient(160deg,#a63a3a,#8d2f35);}
+
+  .refresh-note{font-size:.78rem;color:var(--ink-faint);margin-top:18px;text-align:center;}
+
+  footer{
+    border-top:1px solid rgba(11,42,74,.12);padding:26px 20px 42px;text-align:center;
+    font-size:.8rem;color:var(--ink-soft);
+  }
+  footer .sponsor{margin-top:10px;font-size:.76rem;color:var(--ink-faint);}
+  footer .sponsor a{color:var(--gold-deep);font-weight:700;text-decoration:none;}
+  footer .sponsor a:hover{text-decoration:underline;}
+  .refresh-note button{background:none;border:none;color:var(--blue);font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:3px;font-size:.78rem;}
+
+  @media (max-width:860px){
+    .opps-layout{grid-template-columns:1fr;}
+  }
+  @media (max-width:560px){
+    .q-card{grid-template-columns:1fr;}
+    .q-check{display:flex;gap:8px;align-items:center;font-size:.78rem;color:var(--ink-soft);}
+    .q-check::after{content:"Select";}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-key" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2.5c1.8 2.3 2.8 4.1 2.8 5.5a2.8 2.8 0 0 1-5.6 0c0-1.4 1-3.2 2.8-5.5Z" stroke="#0b2a4a" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M9.5 11.5h5l-1.1 8c-.08.59-.58 1-1.16 1h-.48c-.58 0-1.08-.41-1.16-1l-1.1-8Z" stroke="#0b2a4a" stroke-width="1.8" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Officer HQ</h1>
+        <div class="sub">NHS · Hours &amp; Opportunities</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <nav class="site-nav">
+        <a href="index.html">Home</a>
+        <a href="submit.html">Submit Hours</a>
+        <a href="officer.html" class="active">Officer HQ</a>
+      </nav>
+      <span class="semester-chip" id="semesterChip"></span>
+      <button class="lock-btn" id="lockBtn" onclick="lock()">Lock</button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ============ PIN GATE ============ -->
+  <div class="gate" id="gate">
+    <h2>Officers only</h2>
+    <p id="gateSub">Enter the officer PIN to manage hours and opportunities.</p>
+    <input type="password" id="pinInput" inputmode="numeric" autocomplete="off" maxlength="12"
+           onkeydown="if(event.key==='Enter')unlock()">
+    <button class="btn btn-gold" id="unlockBtn" onclick="unlock()">Unlock</button>
+    <div class="gate-error" id="gateError"></div>
+  </div>
+
+  <!-- ============ DASHBOARD ============ -->
+  <div id="dashboard">
+
+    <div class="stats-row">
+      <div class="stat hot"><div class="v" id="statPending">–</div><div class="l">Pending review</div></div>
+      <div class="stat"><div class="v" id="statMembers">–</div><div class="l">Members</div></div>
+      <div class="stat"><div class="v" id="statAtGoal">–</div><div class="l">At goal</div></div>
+      <div class="stat"><div class="v" id="statHours">–</div><div class="l">Approved hours</div></div>
+    </div>
+
+    <div class="stat" id="annualProgressCard" style="display:none;margin-bottom:24px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+        <div class="l" style="margin-top:0;">Club-wide annual goal</div>
+        <div class="mono" style="font-family:'Spline Sans Mono',monospace;font-weight:600;color:var(--navy);font-size:.9rem;" id="annualProgressText">0 / 0 hrs</div>
+      </div>
+      <div class="mini-bar" style="height:12px;"><i id="annualProgressBar" style="width:0%"></i></div>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="queue" onclick="switchTab('queue')">Review Queue <span class="count" id="queueCount">0</span></button>
+      <button class="tab-btn" data-tab="all" onclick="switchTab('all')">All Submissions</button>
+      <button class="tab-btn" data-tab="roster" onclick="switchTab('roster')">Roster Progress</button>
+      <button class="tab-btn" data-tab="meetings" onclick="switchTab('meetings')">Meetings</button>
+      <button class="tab-btn" data-tab="attendance" onclick="switchTab('attendance')">Attendance</button>
+      <button class="tab-btn" data-tab="opps" onclick="switchTab('opps')">Opportunities</button>
+      <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">Settings</button>
+    </div>
+
+    <!-- ===== TAB: review queue ===== -->
+    <div class="tab-panel active" id="tab-queue">
+      <div class="bulk-bar" id="bulkBar">
+        <span><span class="n" id="bulkCount">0</span> selected</span>
+        <button class="btn btn-approve btn-sm" onclick="bulkReview(this, 'Approved')">Approve selected</button>
+        <button class="btn btn-deny btn-sm" onclick="bulkReview(this, 'Denied')">Deny selected</button>
+        <span class="spacer"></span>
+        <button class="bulk-clear" onclick="clearSelection()">Clear</button>
+      </div>
+      <div class="queue" id="queueList"></div>
+      <div class="refresh-note">Queue not looking right? <button onclick="loadData(true)">Refresh data</button></div>
+    </div>
+
+    <!-- ===== TAB: all submissions ===== -->
+    <div class="tab-panel" id="tab-all">
+      <div class="filter-row">
+        <input type="text" id="allSearch" placeholder="Search name, number, or event…" oninput="renderAll()">
+        <select id="allStatus" onchange="renderAll()">
+          <option value="">All statuses</option>
+          <option>Pending</option>
+          <option>Approved</option>
+          <option>Denied</option>
+        </select>
+      </div>
+      <div class="table-wrap"><div class="table-scroll">
+        <table>
+          <thead><tr><th>Student</th><th>Event</th><th>Date</th><th>Hrs</th><th>Status</th><th>Photo</th><th>Note</th><th></th></tr></thead>
+          <tbody id="allBody"></tbody>
+        </table>
+      </div></div>
+    </div>
+
+    <!-- ===== TAB: roster ===== -->
+    <div class="tab-panel" id="tab-roster">
+      <div class="panel" style="margin-bottom:20px;">
+        <h3>Add accepted member</h3>
+        <p style="font-size:.82rem;color:var(--ink-faint);margin-bottom:14px;">
+          NHS is application/acceptance-based, so there's no public sign-up — add students here
+          only after they've actually been accepted into the chapter.
+        </p>
+        <div class="f-row">
+          <div class="f"><label>First name</label><input id="amFirst" maxlength="40" autocomplete="given-name"></div>
+          <div class="f"><label>Last name</label><input id="amLast" maxlength="40" autocomplete="family-name"></div>
+        </div>
+        <div class="f-row">
+          <div class="f"><label>Student ID</label><input id="amNum" class="mono" inputmode="numeric" maxlength="12" placeholder="Digits only"></div>
+          <div class="f">
+            <label>Grade</label>
+            <select id="amGrade">
+              <option value="">Select…</option>
+              <option value="11">11th (Junior)</option>
+              <option value="12">12th (Senior)</option>
+            </select>
+          </div>
+        </div>
+        <div class="f"><label>School email</label><input id="amEmail" type="email" maxlength="100" autocomplete="email" placeholder="student@school.org"></div>
+        <button class="btn btn-navy" id="amBtn" onclick="addMember()">Add member</button>
+        <div class="opp-msg" id="amMsg"></div>
+      </div>
+      <div class="filter-row">
+        <input type="text" id="rosterSearch" placeholder="Search members…" oninput="renderRoster()">
+      </div>
+      <div class="table-wrap"><div class="table-scroll">
+        <table>
+          <thead><tr><th>Member</th><th>Number</th><th>Grade</th><th>Approved</th><th>Owed</th><th style="width:180px">Progress</th></tr></thead>
+          <tbody id="rosterBody"></tbody>
+        </table>
+      </div></div>
+    </div>
+
+    <!-- ===== TAB: meetings ===== -->
+    <div class="tab-panel" id="tab-meetings">
+      <div class="opps-layout">
+        <div class="panel">
+          <h3>Start a meeting</h3>
+          <div class="f"><label>Meeting title</label><input id="mTitle" maxlength="80" placeholder="e.g. September General Meeting"></div>
+          <div class="f"><label>Date</label><input id="mDate" type="date"></div>
+          <button class="btn btn-gold" id="mCreateBtn" onclick="createMeeting()">Start meeting &amp; get QR</button>
+          <div class="opp-msg" id="mMsg"></div>
+          <p style="margin-top:14px;font-size:.78rem;color:var(--ink-faint);">
+            Starting a meeting generates a 4-letter code and QR. Put the QR on the projector —
+            students scan, enter their student number once, and they're marked present.
+            Close check-in when the meeting starts to stop remote check-ins.
+          </p>
+        </div>
+        <div>
+          <div class="opp-list" id="meetingList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB: attendance ===== -->
+    <div class="tab-panel" id="tab-attendance">
+      <div class="filter-row">
+        <input type="text" id="attSearch" placeholder="Search members…" oninput="renderAttendance()">
+        <select id="attFilter" onchange="renderAttendance()">
+          <option value="">All members</option>
+          <option value="low">Low attendance (&lt;50%)</option>
+          <option value="mid">Spotty (50–75%)</option>
+          <option value="zero">Never attended</option>
+        </select>
+      </div>
+      <div class="table-wrap"><div class="table-scroll">
+        <table>
+          <thead><tr><th>Member</th><th>Number</th><th>Attended</th><th>Missed</th><th style="width:170px">Rate</th><th>Last seen</th></tr></thead>
+          <tbody id="attBody"></tbody>
+        </table>
+      </div></div>
+      <div class="refresh-note" id="attSummary"></div>
+    </div>
+
+    <!-- ===== TAB: opportunities ===== -->
+    <div class="tab-panel" id="tab-opps">
+      <div class="opps-layout">
+        <div class="panel">
+          <h3>Post a new opportunity</h3>
+          <div class="f"><label>Title *</label><input id="oTitle" maxlength="100" placeholder="e.g. Food Bank Saturday Sort"></div>
+          <div class="f"><label>Organization</label><input id="oOrg" maxlength="100"></div>
+          <div class="f-row">
+            <div class="f"><label>Date</label><input id="oDate" maxlength="60" placeholder="Sat, Jul 11"></div>
+            <div class="f"><label>Time</label><input id="oTime" maxlength="60" placeholder="9 AM – 12 PM"></div>
+          </div>
+          <div class="f"><label>Location</label><input id="oLocation" maxlength="120"></div>
+          <div class="f"><label>Hours offered</label><input id="oHours" maxlength="30" placeholder="e.g. 3 hrs"></div>
+          <div class="f"><label>Description</label><textarea id="oDesc" maxlength="500"></textarea></div>
+          <div class="f"><label>Sign-up contact</label><input id="oContact" maxlength="150" placeholder="How members sign up"></div>
+          <button class="btn btn-navy" id="oAddBtn" onclick="addOpportunity()">Post opportunity</button>
+          <div class="opp-msg" id="oMsg"></div>
+        </div>
+        <div>
+          <div class="opp-list" id="oppList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB: settings ===== -->
+    <div class="tab-panel" id="tab-settings">
+      <div class="opps-layout">
+        <div class="panel">
+          <h3>Per-grade semester goal</h3>
+          <p style="font-size:.82rem;color:var(--ink-faint);margin-bottom:14px;">
+            NHS juniors and seniors often have different hour requirements — unlike a flat
+            club-wide number, each member's punch card and roster progress uses their own
+            grade's goal automatically.
+          </p>
+          <div class="f-row">
+            <div class="f">
+              <label>Junior (11th) hours</label>
+              <input id="setJuniorGoal" type="number" min="1" step="1" placeholder="e.g. 10">
+            </div>
+            <div class="f">
+              <label>Senior (12th) hours</label>
+              <input id="setSeniorGoal" type="number" min="1" step="1" placeholder="e.g. 8">
+            </div>
+          </div>
+          <button class="btn btn-navy" id="setGradeSaveBtn" onclick="saveGradeGoals()">Save grade goals</button>
+          <div class="opp-msg" id="setGradeMsg"></div>
+        </div>
+        <div class="panel">
+          <h3>Club-wide annual goal</h3>
+          <div class="f">
+            <label>Combined hours for the whole club this year</label>
+            <input id="setAnnualGoal" type="number" min="1" step="10" placeholder="e.g. 4000">
+          </div>
+          <button class="btn btn-navy" id="setSaveBtn" onclick="saveSettings()">Save goal</button>
+          <div class="opp-msg" id="setMsg"></div>
+          <p id="setProgressNote" style="margin-top:14px;font-size:.82rem;color:var(--ink-soft);"></p>
+          <p style="margin-top:10px;font-size:.78rem;color:var(--ink-faint);">
+            This is every approved hour from every member, ever, added together, shown as one
+            progress bar on the member homepage — not a per-member number. It's separate from
+            the per-grade goal used on each member's punch card.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div>Officer HQ · NHS service hours &amp; opportunities</div>
+  <div class="sponsor">Sponsored by <a href="https://everydetail.co" target="_blank" rel="noopener">Every Detail</a></div>
+</footer>
+
+<div class="qr-overlay" id="qrOverlay" onclick="if(event.target===this)closeQr()">
+  <div class="qr-modal">
+    <button class="qr-close" onclick="closeQr()" aria-label="Close">&times;</button>
+    <div class="qr-mtg" id="qrMeetingTitle"></div>
+    <div class="qr-code-big" id="qrCodeText"></div>
+    <img id="qrImg" alt="Check-in QR code">
+    <div class="qr-hint">Scan to check in — or go to the link and enter the code</div>
+    <a class="qr-link" id="qrLink" target="_blank" rel="noopener"></a>
+  </div>
+</div>
+
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-modal">
+    <p id="confirmMessage"></p>
+    <div class="confirm-actions">
+      <button class="btn btn-deny btn-sm" id="confirmCancelBtn">Cancel</button>
+      <button class="btn btn-navy btn-sm" id="confirmOkBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================================================================
+   CONFIG — same Web App URL as the member dashboard.
+   ================================================================ */
+const API_URL = "https://script.google.com/macros/s/AKfycbyKO921qNx2eoUqvxByGZ1zbqLZKvW2ZCimIDBYivK1wQxnr686nfGX82zZimAZ4wg/exec";
+
+const GATE_PROMPT = "Enter the officer PIN to manage hours and opportunities.";
+
+/* ---------------- button loading state ----------------
+   Every async button gets a spinner + label, not just disabled text — this
+   covers both the static id-based buttons (login, save, etc.) and the
+   dynamically-rendered per-row buttons (review, delete, toggle, etc.),
+   which previously gave zero feedback while a request was in flight. */
+function setBtnLoading(btn, label){
+  if (!btn) return;
+  if (btn.dataset.originalHtml === undefined) btn.dataset.originalHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span>' + label;
+}
+function clearBtnLoading(btn, label){
+  if (!btn) return;
+  btn.disabled = false;
+  btn.innerHTML = (label !== undefined) ? label : (btn.dataset.originalHtml || btn.textContent);
+  delete btn.dataset.originalHtml;
+}
+
+/* ---------------- API transport: fetch first, JSONP fallback ----------------
+   iOS Safari can refuse cross-site <script> loads inside embedded iframes,
+   which kills JSONP instantly. Plain fetch GET works because Apps Script
+   serves anonymous web apps with CORS headers. JSONP stays as a fallback. */
+let jsonpCounter = 0;
+
+async function apiCall(params){
+  const qs = Object.entries(params)
+    .map(([k,v]) => encodeURIComponent(k) + "=" + encodeURIComponent(v ?? ""))
+    .join("&");
+  try {
+    const res = await fetch(API_URL + "?" + qs, { method:"GET", redirect:"follow" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return await res.json();
+  } catch(fetchErr){
+    return jsonpCall(qs);
+  }
+}
+
+function jsonpCall(qs){
+  return new Promise((resolve, reject) => {
+    const cbName = "nhs_off_" + (++jsonpCounter) + "_" + Date.now();
+    const cleanup = () => {
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+      clearTimeout(timer);
+    };
+    const timer = setTimeout(() => { cleanup(); reject(new Error("Request timed out. Try again.")); }, 25000);
+    window[cbName] = (data) => { cleanup(); resolve(data); };
+    const script = document.createElement("script");
+    script.src = API_URL + "?" + qs + "&callback=" + cbName;
+    script.onerror = () => { cleanup(); reject(new Error("Couldn't reach the server.")); };
+    document.body.appendChild(script);
+  });
+}
+
+/* ---------------- state ---------------- */
+function storeGet(k){ try { return sessionStorage.getItem(k); } catch(e){ return null; } }
+function storeSet(k,v){ try { sessionStorage.setItem(k,v); } catch(e){} }
+function storeRemove(k){ try { sessionStorage.removeItem(k); } catch(e){} }
+let PIN = storeGet("nhs_officer_pin") || "";
+let DATA = null;
+const selected = new Set();   // rows selected for bulk action
+
+/* ---------------- gate ---------------- */
+async function unlock(){
+  const btn = document.getElementById("unlockBtn");
+  const err = document.getElementById("gateError");
+  const pin = document.getElementById("pinInput").value.trim();
+  err.style.display = "none";
+  if (!pin){ err.textContent = "Enter the PIN."; err.style.display = "block"; return; }
+
+  setBtnLoading(btn, "Checking…");
+  try {
+    const data = await apiCall({ action:"officerData", pin });
+    if (!data.success){ err.textContent = data.error || "Wrong PIN."; err.style.display = "block"; return; }
+    PIN = pin;
+    storeSet("nhs_officer_pin", pin);
+    DATA = data;
+    showDashboard();
+  } catch(e){
+    err.textContent = e.message; err.style.display = "block";
+  } finally {
+    clearBtnLoading(btn, "Unlock");
+  }
+}
+
+function lock(){
+  PIN = ""; DATA = null;
+  storeRemove("nhs_officer_pin");
+  document.getElementById("dashboard").style.display = "none";
+  document.getElementById("gate").style.display = "block";
+  document.getElementById("gateSub").textContent = GATE_PROMPT;
+  document.getElementById("lockBtn").style.display = "none";
+  document.getElementById("semesterChip").style.display = "none";
+  document.getElementById("pinInput").value = "";
+}
+
+async function loadData(showToastOnDone){
+  try {
+    const data = await apiCall({ action:"officerData", pin: PIN });
+    if (!data.success){
+      if (/PIN/i.test(data.error || "")) { lock(); }
+      showToast(data.error || "Couldn't load data.", true);
+      return;
+    }
+    DATA = data;
+    renderEverything();
+    if (showToastOnDone) showToast("Data refreshed.");
+  } catch(e){
+    showToast(e.message, true);
+  }
+}
+
+function showDashboard(){
+  document.getElementById("gate").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
+  document.getElementById("lockBtn").style.display = "inline-block";
+  const chip = document.getElementById("semesterChip");
+  if (DATA.semesterLabel){ chip.textContent = DATA.semesterLabel; chip.style.display = "inline-block"; }
+  renderEverything();
+}
+
+/* ---------------- rendering ---------------- */
+function renderEverything(){
+  selected.clear();
+  updateBulkBar();
+  renderStats();
+  renderQueue();
+  renderAll();
+  renderRoster();
+  renderOpps();
+  renderMeetings();
+  renderAttendance();
+  renderSettings();
+  renderAnnualProgress();
+  const md = document.getElementById("mDate");
+  if (md && !md.value) md.value = new Date().toISOString().slice(0,10);
+}
+
+function renderStats(){
+  const s = DATA.stats;
+  document.getElementById("statPending").textContent = s.pendingCount;
+  document.getElementById("statMembers").textContent = s.members;
+  document.getElementById("statAtGoal").textContent = s.atGoal + " / " + s.members;
+  document.getElementById("statHours").textContent = fmtHrs(s.totalApprovedHours);
+  const qc = document.getElementById("queueCount");
+  qc.textContent = s.pendingCount;
+  qc.classList.toggle("zero", s.pendingCount === 0);
+}
+
+function renderQueue(){
+  const list = document.getElementById("queueList");
+  list.innerHTML = "";
+  const pending = DATA.pending || [];
+  if (!pending.length){
+    list.innerHTML = '<div class="empty-state"><span class="big">Queue clear 🎉</span>No submissions waiting for review.</div>';
+    return;
+  }
+  pending.forEach(e => {
+    const card = document.createElement("div");
+    card.className = "q-card";
+    card.id = "q-" + e.row;
+    const outOfSem = e.inSemester ? "" : ' <span class="status-pill denied" title="Service date falls outside the current semester window">Out of semester</span>';
+    card.innerHTML =
+      '<div class="q-check"><input type="checkbox" onchange="toggleSelect(' + e.row + ', this.checked)" aria-label="Select submission"></div>' +
+      '<div class="q-main">' +
+        '<div class="q-top">' +
+          '<span class="q-student">' + esc(e.name) + '<span class="num">#' + esc(e.studentNumber) + '</span></span>' +
+          '<span class="q-hours">' + fmtHrs(e.hours) + ' hrs</span>' +
+        '</div>' +
+        '<div class="q-event">' + esc(e.event) + ' <span class="date">· ' + esc(fmtDate(e.date)) + outOfSem + '</span></div>' +
+        '<div class="q-detail">' +
+          '<span><b>Supervisor:</b> ' + esc(e.supervisor || "—") + '</span>' +
+          '<span><b>Contact:</b> ' + esc(e.contact || "—") + '</span>' +
+        '</div>' +
+        (e.description ? '<div class="q-desc">' + esc(e.description) + '</div>' : '') +
+        '<div class="q-actions">' +
+          (e.photo
+            ? '<a class="photo-link" href="' + esc(e.photo) + '" target="_blank" rel="noopener">📷 View photo</a>'
+            : '<span class="photo-link none">No photo</span>') +
+          '<input class="q-note" id="note-' + e.row + '" maxlength="200" placeholder="Optional note (shown in sheet)">' +
+          '<button class="btn btn-approve btn-sm" onclick="review(this, ' + e.row + ', ' + jsAttr(e.ts) + ', \'Approved\')">Approve</button>' +
+          '<button class="btn btn-deny btn-sm" onclick="review(this, ' + e.row + ', ' + jsAttr(e.ts) + ', \'Denied\')">Deny</button>' +
+        '</div>' +
+      '</div>';
+    list.appendChild(card);
+  });
+}
+
+function renderAll(){
+  const body = document.getElementById("allBody");
+  const q = document.getElementById("allSearch").value.trim().toLowerCase();
+  const st = document.getElementById("allStatus").value;
+  const rows = [...(DATA.pending || []), ...(DATA.decided || [])];
+  body.innerHTML = "";
+  rows
+    .filter(e => (!st || e.status === st))
+    .filter(e => !q || (e.name + " " + e.studentNumber + " " + e.event).toLowerCase().includes(q))
+    .forEach(e => {
+      const tr = document.createElement("tr");
+      const flip = e.status === "Approved"
+        ? '<button class="row-flip" onclick="flipDecision(this, ' + e.row + ', ' + jsAttr(e.ts) + ', \'Denied\')">Flip to denied</button>'
+        : e.status === "Denied"
+          ? '<button class="row-flip" onclick="flipDecision(this, ' + e.row + ', ' + jsAttr(e.ts) + ', \'Approved\')">Flip to approved</button>'
+          : '';
+      tr.innerHTML =
+        '<td><b>' + esc(e.name) + '</b><br><span class="mono" style="font-size:.72rem;color:var(--ink-faint)">#' + esc(e.studentNumber) + '</span></td>' +
+        '<td>' + esc(e.event) + '</td>' +
+        '<td class="mono">' + esc(fmtDate(e.date)) + '</td>' +
+        '<td class="mono">' + fmtHrs(e.hours) + '</td>' +
+        '<td><span class="status-pill ' + e.status.toLowerCase() + '">' + esc(e.status) + '</span></td>' +
+        '<td>' + (e.photo ? '<a class="row-flip" href="' + esc(e.photo) + '" target="_blank" rel="noopener">View</a>' : '—') + '</td>' +
+        '<td style="max-width:180px">' + esc(e.note || "") + '</td>' +
+        '<td>' + flip + '</td>';
+      body.appendChild(tr);
+    });
+  if (!body.children.length){
+    body.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--ink-faint);padding:30px">Nothing matches.</td></tr>';
+  }
+}
+
+function renderRoster(){
+  const body = document.getElementById("rosterBody");
+  const q = document.getElementById("rosterSearch").value.trim().toLowerCase();
+  body.innerHTML = "";
+  (DATA.roster || [])
+    .filter(m => !q || (m.name + " " + m.studentNumber).toLowerCase().includes(q))
+    .forEach(m => {
+      const goal = Number(m.goal) || 10;
+      const owed = Number(m.owed) || 0;
+      const effectiveGoal = goal + owed;
+      const pct = Math.min(100, (m.approved / effectiveGoal) * 100);
+      const gradeLabel = m.grade === "12" ? "Senior" : (m.grade === "11" ? "Junior" : (m.grade || "—"));
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        '<td><b>' + esc(m.name) + '</b>' + (m.approved >= effectiveGoal ? ' <span class="goal-star" title="At goal">★</span>' : '') + '</td>' +
+        '<td class="mono">#' + esc(m.studentNumber) + '</td>' +
+        '<td>' + esc(gradeLabel) + '</td>' +
+        '<td class="mono">' + fmtHrs(m.approved) + ' / ' + effectiveGoal + '</td>' +
+        '<td class="mono owed-cell' + (owed ? '' : ' zero') + '">' + (owed ? '+' + fmtHrs(owed) : '—') + '</td>' +
+        '<td><div class="mini-bar"><i style="width:' + pct + '%"></i></div></td>';
+      body.appendChild(tr);
+    });
+  if (!body.children.length){
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--ink-faint);padding:30px">No members found.</td></tr>';
+  }
+}
+
+function renderOpps(){
+  const list = document.getElementById("oppList");
+  list.innerHTML = "";
+  const opps = DATA.opportunities || [];
+  if (!opps.length){
+    list.innerHTML = '<div class="empty-state"><span class="big">No opportunities posted</span>Use the form to post the first one.</div>';
+    return;
+  }
+  opps.forEach(o => {
+    const row = document.createElement("div");
+    row.className = "opp-row" + (o.active ? "" : " inactive");
+    const meta = [o.org, o.date, o.time, o.location, o.hours].filter(Boolean).join(" · ");
+    row.innerHTML =
+      '<div class="info">' +
+        '<h4>' + esc(o.title) +
+          '<span class="live-pill ' + (o.active ? 'on">Live' : 'off">Hidden') + '</span></h4>' +
+        (meta ? '<div class="meta">' + esc(meta) + '</div>' : '') +
+      '</div>' +
+      '<div class="controls">' +
+        '<button class="toggle-btn ' + (o.active ? 'on' : 'off') + '" onclick="toggleOpp(this, ' + o.row + ', ' + jsAttr(o.title) + ', ' + (o.active ? "'N'" : "'Y'") + ')">' + (o.active ? 'Hide' : 'Show') + '</button>' +
+        '<button class="del-btn" onclick="deleteOpp(this, ' + o.row + ', ' + jsAttr(o.title) + ')">Delete</button>' +
+      '</div>';
+    list.appendChild(row);
+  });
+}
+
+/* ---------------- review actions ---------------- */
+async function review(btn, row, ts, decision, noteOverride){
+  const noteEl = document.getElementById("note-" + row);
+  const note = (noteOverride !== undefined) ? noteOverride : (noteEl ? noteEl.value.trim() : "");
+  const card = document.getElementById("q-" + row);
+  setBtnLoading(btn, decision === "Approved" ? "Approving…" : "Denying…");
+  try {
+    const res = await apiCall({ action:"reviewHours", pin: PIN, row, ts, decision, note });
+    if (!res.success){
+      clearBtnLoading(btn);
+      showToast(res.error, true);
+      if (/changed since|no longer exists/i.test(res.error || "")) loadData();
+      return;
+    }
+    if (card) card.classList.add("leaving");
+    applyDecisionLocally(row, decision, note);
+    showToast(decision === "Approved" ? "Hours approved ✓" : "Hours denied");
+  } catch(e){
+    clearBtnLoading(btn);
+    showToast(e.message, true);
+  }
+}
+
+/* Flip from the All Submissions tab — keep the entry's existing note instead
+   of silently wiping it (there's no note input on that tab). */
+function flipDecision(btn, row, ts, decision){
+  const entry = [...(DATA.pending || []), ...(DATA.decided || [])].find(e => e.row === row);
+  review(btn, row, ts, decision, entry ? (entry.note || "") : "");
+}
+
+async function bulkReview(btn, decision){
+  const rows = [...selected];
+  if (!rows.length) return;
+  setBtnLoading(btn, "Processing…");
+  let ok = 0, fail = 0;
+  for (const row of rows){
+    const entry = (DATA.pending || []).find(e => e.row === row);
+    if (!entry){ fail++; continue; }
+    try {
+      const res = await apiCall({ action:"reviewHours", pin: PIN, row, ts: entry.ts, decision, note: "" });
+      if (res.success){ applyDecisionLocally(row, decision, ""); ok++; }
+      else fail++;
+    } catch(e){ fail++; }
+  }
+  clearBtnLoading(btn);
+  clearSelection();
+  showToast(ok + " " + decision.toLowerCase() + (fail ? ", " + fail + " failed — refresh" : " ✓"), fail > 0);
+  if (fail) loadData();
+}
+
+/** Move entry from pending → decided in local state and re-render. */
+function applyDecisionLocally(row, decision, note){
+  const idx = (DATA.pending || []).findIndex(e => e.row === row);
+  let entry;
+  if (idx > -1){
+    entry = DATA.pending.splice(idx, 1)[0];
+    DATA.stats.pendingCount = DATA.pending.length;
+  } else {
+    entry = (DATA.decided || []).find(e => e.row === row);
+    if (entry) DATA.decided = DATA.decided.filter(e => e.row !== row);
+  }
+  if (entry){
+    const prev = entry.status;
+    entry.status = decision; entry.note = note;
+    DATA.decided.unshift(entry);
+    // keep roster + stats roughly in sync without a refetch
+    if (entry.inSemester){
+      const m = (DATA.roster || []).find(r => String(r.studentNumber) === String(entry.studentNumber));
+      if (m){
+        const h = Number(entry.hours) || 0;
+        if (decision === "Approved" && prev !== "Approved") m.approved += h;
+        if (decision === "Denied" && prev === "Approved") m.approved = Math.max(0, m.approved - h);
+        DATA.stats.totalApprovedHours = (DATA.roster || []).reduce((s,r) => s + r.approved, 0);
+        DATA.stats.atGoal = (DATA.roster || []).filter(r => r.approved >= (Number(r.goal) || 10) + (Number(r.owed) || 0)).length;
+      }
+    }
+  }
+  selected.delete(row);
+  renderStats(); renderQueue(); renderAll(); renderRoster(); updateBulkBar();
+}
+
+/* ---------------- bulk selection ---------------- */
+function toggleSelect(row, on){
+  on ? selected.add(row) : selected.delete(row);
+  updateBulkBar();
+}
+function clearSelection(){
+  selected.clear();
+  document.querySelectorAll('.q-check input').forEach(c => c.checked = false);
+  updateBulkBar();
+}
+function updateBulkBar(){
+  document.getElementById("bulkCount").textContent = selected.size;
+  document.getElementById("bulkBar").classList.toggle("show", selected.size > 0);
+}
+
+/* ---------------- opportunity actions ---------------- */
+async function addOpportunity(){
+  const btn = document.getElementById("oAddBtn");
+  const msg = document.getElementById("oMsg");
+  msg.className = "opp-msg";
+  const payload = {
+    action:"addOpportunity", pin: PIN,
+    title: val("oTitle"), org: val("oOrg"), date: val("oDate"), time: val("oTime"),
+    location: val("oLocation"), hours: val("oHours"), description: val("oDesc"), contact: val("oContact"),
+    active: "Y"
+  };
+  if (!payload.title){ msg.className = "opp-msg err"; msg.textContent = "Title is required."; return; }
+  setBtnLoading(btn, "Posting…");
+  try {
+    const res = await apiCall(payload);
+    if (!res.success){ msg.className = "opp-msg err"; msg.textContent = res.error; return; }
+    msg.className = "opp-msg ok"; msg.textContent = "Posted — it's live on the member dashboard.";
+    ["oTitle","oOrg","oDate","oTime","oLocation","oHours","oDesc","oContact"].forEach(id => document.getElementById(id).value = "");
+    loadData();
+  } catch(e){
+    msg.className = "opp-msg err"; msg.textContent = e.message;
+  } finally {
+    clearBtnLoading(btn, "Post opportunity");
+  }
+}
+
+async function toggleOpp(btn, row, title, newState){
+  setBtnLoading(btn, newState === "Y" ? "Showing…" : "Hiding…");
+  try {
+    const res = await apiCall({ action:"toggleOpportunity", pin: PIN, row, title, active: newState });
+    if (!res.success){ clearBtnLoading(btn); showToast(res.error, true); if (/changed since/i.test(res.error||"")) loadData(); return; }
+    const o = (DATA.opportunities || []).find(x => x.row === row);
+    if (o) o.active = newState === "Y";
+    renderOpps();
+    showToast(newState === "Y" ? "Opportunity is live." : "Opportunity hidden.");
+  } catch(e){ clearBtnLoading(btn); showToast(e.message, true); }
+}
+
+async function deleteOpp(btn, row, title){
+  const ok = await showConfirm('Delete "' + title + '" permanently? Hiding it is usually safer.');
+  if (!ok) return;
+  setBtnLoading(btn, "Deleting…");
+  try {
+    const res = await apiCall({ action:"deleteOpportunity", pin: PIN, row, title });
+    if (!res.success){ clearBtnLoading(btn); showToast(res.error, true); if (/changed since/i.test(res.error||"")) loadData(); return; }
+    showToast("Deleted.");
+    loadData();   // rows shift after a delete — always refetch
+  } catch(e){ clearBtnLoading(btn); showToast(e.message, true); }
+}
+
+/* ---------------- settings ---------------- */
+function renderSettings(){
+  const el = document.getElementById("setAnnualGoal");
+  const s = DATA.settings || {};
+  if (el && s.annualGoal) el.value = s.annualGoal;
+  const jEl = document.getElementById("setJuniorGoal");
+  const sEl = document.getElementById("setSeniorGoal");
+  if (jEl && s.hoursGoalJunior) jEl.value = s.hoursGoalJunior;
+  if (sEl && s.hoursGoalSenior) sEl.value = s.hoursGoalSenior;
+  const note = document.getElementById("setProgressNote");
+  const goal = Number(s.annualGoal) || 0;
+  const approved = Number(s.annualApproved) || 0;
+  if (note){
+    note.textContent = goal
+      ? "Currently at " + fmtHrs(approved) + " of " + fmtHrs(goal) + " combined hours (" + Math.round(Math.min(100, (approved / goal) * 100)) + "%) for the club this year."
+      : "Set a goal below to start tracking combined progress.";
+  }
+}
+
+async function saveGradeGoals(){
+  const btn = document.getElementById("setGradeSaveBtn");
+  const msg = document.getElementById("setGradeMsg");
+  msg.className = "opp-msg";
+  const juniorVal = Number(val("setJuniorGoal"));
+  const seniorVal = Number(val("setSeniorGoal"));
+  if (!juniorVal || juniorVal <= 0 || !seniorVal || seniorVal <= 0){
+    msg.className = "opp-msg err"; msg.textContent = "Enter goals greater than 0 for both grades."; return;
+  }
+  setBtnLoading(btn, "Saving…");
+  try {
+    const res = await apiCall({ action:"updateSettings", pin: PIN, hoursGoalJunior: juniorVal, hoursGoalSenior: seniorVal });
+    if (!res.success){ msg.className = "opp-msg err"; msg.textContent = res.error || "Could not save."; return; }
+    DATA.settings = DATA.settings || {};
+    DATA.settings.hoursGoalJunior = juniorVal;
+    DATA.settings.hoursGoalSenior = seniorVal;
+    msg.className = "opp-msg ok"; msg.textContent = "Saved — refresh data for it to apply to the roster below.";
+  } catch(e){
+    msg.className = "opp-msg err"; msg.textContent = e.message;
+  } finally {
+    clearBtnLoading(btn, "Save grade goals");
+  }
+}
+
+/* Persistent club-wide progress bar shown above the tabs. */
+function renderAnnualProgress(){
+  const card = document.getElementById("annualProgressCard");
+  const s = DATA.settings || {};
+  const goal = Number(s.annualGoal) || 0;
+  const approved = Math.max(0, Number(s.annualApproved) || 0);
+  if (!goal){ card.style.display = "none"; return; }
+  const pct = Math.min(100, (approved / goal) * 100);
+  document.getElementById("annualProgressText").textContent = fmtHrs(approved) + " / " + fmtHrs(goal) + " hrs (" + Math.round(pct) + "%)";
+  document.getElementById("annualProgressBar").style.width = pct + "%";
+  card.style.display = "block";
+}
+
+async function saveSettings(){
+  const btn = document.getElementById("setSaveBtn");
+  const msg = document.getElementById("setMsg");
+  msg.className = "opp-msg";
+  const goalVal = Number(val("setAnnualGoal"));
+  if (!goalVal || goalVal <= 0){ msg.className = "opp-msg err"; msg.textContent = "Enter a goal greater than 0."; return; }
+  setBtnLoading(btn, "Saving…");
+  try {
+    const res = await apiCall({ action:"updateSettings", pin: PIN, annualGoal: goalVal });
+    if (!res.success){ msg.className = "opp-msg err"; msg.textContent = res.error || "Could not save."; return; }
+    DATA.settings = DATA.settings || {};
+    DATA.settings.annualGoal = goalVal;
+    renderSettings();
+    renderAnnualProgress();
+    msg.className = "opp-msg ok"; msg.textContent = "Saved — members will see the new goal.";
+  } catch(e){
+    msg.className = "opp-msg err"; msg.textContent = e.message;
+  } finally {
+    clearBtnLoading(btn, "Save goal");
+  }
+}
+
+/* ---------------- add member (application/acceptance — no public sign-up) ---------------- */
+async function addMember(){
+  const btn = document.getElementById("amBtn");
+  const msg = document.getElementById("amMsg");
+  msg.className = "opp-msg";
+
+  const payload = {
+    action: "addMember", pin: PIN,
+    firstName: val("amFirst"), lastName: val("amLast"),
+    studentNumber: val("amNum"), grade: document.getElementById("amGrade").value,
+    email: val("amEmail")
+  };
+
+  if (!payload.firstName || !payload.lastName){ msg.className = "opp-msg err"; msg.textContent = "Enter first and last name."; return; }
+  if (!/^\d{3,12}$/.test(payload.studentNumber)){ msg.className = "opp-msg err"; msg.textContent = "Student ID should be digits only."; return; }
+  if (!payload.grade){ msg.className = "opp-msg err"; msg.textContent = "Pick a grade."; return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)){ msg.className = "opp-msg err"; msg.textContent = "Enter a valid email."; return; }
+
+  setBtnLoading(btn, "Adding…");
+  try {
+    const res = await apiCall(payload);
+    if (!res.success){ msg.className = "opp-msg err"; msg.textContent = res.error || "Could not add member."; return; }
+    msg.className = "opp-msg ok"; msg.textContent = res.name + " added to the roster.";
+    ["amFirst","amLast","amNum","amEmail"].forEach(id => document.getElementById(id).value = "");
+    document.getElementById("amGrade").value = "";
+    loadData();
+  } catch(e){
+    msg.className = "opp-msg err"; msg.textContent = e.message;
+  } finally {
+    clearBtnLoading(btn, "Add member");
+  }
+}
+
+/* ---------------- meetings ---------------- */
+function renderMeetings(){
+  const list = document.getElementById("meetingList");
+  list.innerHTML = "";
+  const meetings = DATA.meetings || [];
+  if (!meetings.length){
+    list.innerHTML = '<div class="empty-state"><span class="big">No meetings yet</span>Start one to get a check-in QR code.</div>';
+    return;
+  }
+  meetings.forEach(m => {
+    const row = document.createElement("div");
+    row.className = "opp-row" + (m.open ? "" : " inactive");
+    const attendees = m.attendees || [];
+    const presentSet = new Set(attendees.map(a => String(a.studentNumber)));
+    const absent = (DATA.roster || []).filter(r => !presentSet.has(String(r.studentNumber)));
+    const presentNames = attendees.map(a => esc(a.name)).join(", ") || "<i>No one yet</i>";
+    const absentNames = absent.map(r => esc(r.name)).join(", ") || "<i>Nobody — full house!</i>";
+    row.innerHTML =
+      '<div class="info">' +
+        '<h4>' + esc(m.title) +
+          '<span class="mtg-code-chip">' + esc(m.code) + '</span>' +
+          '<span class="live-pill ' + (m.open ? 'on">Check-in open' : 'off">Closed') + '</span></h4>' +
+        '<div class="meta">' + esc(fmtDate(m.date)) +
+          ' · <b class="att-present">' + attendees.length + ' present</b>' +
+          ' · <b class="att-absent">' + absent.length + ' absent</b>' +
+          ' · <button class="row-flip" onclick="toggleAtt(this)">View attendance</button>' +
+        '</div>' +
+        '<div class="att-list">' +
+          '<div class="att-group"><span class="att-tag present">✓ Present (' + attendees.length + ')</span>' + presentNames + '</div>' +
+          '<div class="att-group"><span class="att-tag absent">✕ Absent (' + absent.length + ')</span>' + absentNames + '</div>' +
+        '</div>' +
+        (m.open ? '' :
+          '<div class="manual-add">' +
+            '<input type="text" id="madd-' + m.row + '" inputmode="numeric" maxlength="12" placeholder="Student #" onkeydown="if(event.key===\'Enter\')addAttendeeManually(' + m.row + ', ' + jsAttr(m.id) + ')">' +
+            '<button class="btn btn-navy btn-sm" id="madd-btn-' + m.row + '" onclick="addAttendeeManually(' + m.row + ', ' + jsAttr(m.id) + ')">Add attendee</button>' +
+            (absent.length && !m.makeupApplied
+              ? '<button class="btn btn-deny btn-sm" onclick="applyMakeup(this, ' + m.row + ', ' + jsAttr(m.id) + ', ' + absent.length + ')">Apply 30-min makeup (' + absent.length + ')</button>'
+              : m.makeupApplied ? '<span class="live-pill warn">Makeup applied ✓</span>' : '') +
+            '<span class="hint">Check-in is closed, so this adds someone by hand — use it for stragglers before applying the makeup penalty.</span>' +
+          '</div>'
+        ) +
+      '</div>' +
+      '<div class="controls">' +
+        '<button class="btn btn-navy btn-sm" onclick="showQr(' + jsAttr(m.code) + ', ' + jsAttr(m.title) + ')">Show QR</button>' +
+        '<button class="toggle-btn ' + (m.open ? 'on' : 'off') + '" onclick="toggleMeeting(this, ' + m.row + ', ' + jsAttr(m.id) + ', ' + (m.open ? "'N'" : "'Y'") + ')">' + (m.open ? 'Close check-in' : 'Reopen') + '</button>' +
+      '</div>';
+    list.appendChild(row);
+  });
+}
+
+/* Manually mark a student present — for stragglers after check-in has closed. */
+async function addAttendeeManually(row, id){
+  const input = document.getElementById("madd-" + row);
+  const btn = document.getElementById("madd-btn-" + row);
+  const num = input.value.trim();
+  if (!/^\d{3,12}$/.test(num)){ showToast("Enter a valid student number.", true); return; }
+  const member = (DATA.roster || []).find(r => String(r.studentNumber) === num);
+  if (!member){ showToast("No member found with that student number.", true); return; }
+  const meeting = (DATA.meetings || []).find(m => m.row === row);
+  if (meeting && (meeting.attendees || []).some(a => String(a.studentNumber) === num)){
+    showToast(member.name + " is already marked present.", true); return;
+  }
+  setBtnLoading(btn, "Adding…");
+  input.disabled = true;
+  try {
+    const res = await apiCall({ action:"addAttendee", pin: PIN, row, id, studentNumber: num });
+    if (!res.success){ clearBtnLoading(btn); input.disabled = false; showToast(res.error || "Could not add attendee.", true); if (/changed since/i.test(res.error||"")) loadData(); return; }
+    if (meeting){
+      meeting.attendees = meeting.attendees || [];
+      meeting.attendees.push({ studentNumber: num, name: member.name });
+    }
+    input.value = "";
+    renderMeetings();
+    renderAttendance();
+    showToast(member.name + " added to attendance.");
+  } catch(e){ clearBtnLoading(btn); input.disabled = false; showToast(e.message, true); }
+}
+
+/* Add a 30-minute makeup requirement to everyone absent from this meeting.
+   One-shot per meeting — the button disappears once applied so it can't double-charge. */
+async function applyMakeup(btn, row, id, absentCount){
+  const ok = await showConfirm("Add a 30-minute makeup requirement to the " + absentCount + " member(s) still marked absent? Add any stragglers first — this can't be undone from here.");
+  if (!ok) return;
+  setBtnLoading(btn, "Applying…");
+  try {
+    const res = await apiCall({ action:"applyAbsenceMakeup", pin: PIN, row, id });
+    if (!res.success){ clearBtnLoading(btn); showToast(res.error || "Could not apply makeup.", true); if (/changed since/i.test(res.error||"")) loadData(); return; }
+    const meeting = (DATA.meetings || []).find(m => m.row === row);
+    if (meeting){
+      meeting.makeupApplied = true;
+      const presentSet = new Set((meeting.attendees || []).map(a => String(a.studentNumber)));
+      (DATA.roster || []).forEach(m2 => {
+        if (!presentSet.has(String(m2.studentNumber))) m2.owed = (Number(m2.owed) || 0) + 0.5;
+      });
+    }
+    renderMeetings();
+    renderRoster();
+    showToast("30-minute makeup applied to " + absentCount + " member(s).");
+  } catch(e){ clearBtnLoading(btn); showToast(e.message, true); }
+}
+
+function toggleAtt(btn){
+  const list = btn.closest(".info").querySelector(".att-list");
+  const showing = list.classList.toggle("show");
+  btn.textContent = showing ? "Hide attendance" : "View attendance";
+}
+
+async function createMeeting(){
+  const btn = document.getElementById("mCreateBtn");
+  const msg = document.getElementById("mMsg");
+  msg.className = "opp-msg";
+  const title = val("mTitle") || "Club Meeting";
+  const date = val("mDate");
+  setBtnLoading(btn, "Starting…");
+  try {
+    const res = await apiCall({ action:"createMeeting", pin: PIN, title, date });
+    if (!res.success){ msg.className = "opp-msg err"; msg.textContent = res.error; return; }
+    document.getElementById("mTitle").value = "";
+    await loadData();
+    switchTab('meetings');
+    showQr(res.meeting.code, res.meeting.title);
+  } catch(e){
+    msg.className = "opp-msg err"; msg.textContent = e.message;
+  } finally {
+    clearBtnLoading(btn, "Start meeting & get QR");
+  }
+}
+
+async function toggleMeeting(btn, row, id, newState){
+  setBtnLoading(btn, newState === "Y" ? "Reopening…" : "Closing…");
+  try {
+    const res = await apiCall({ action:"toggleMeeting", pin: PIN, row, id, open: newState });
+    if (!res.success){ clearBtnLoading(btn); showToast(res.error, true); if (/changed since/i.test(res.error||"")) loadData(); return; }
+    const m = (DATA.meetings || []).find(x => x.row === row);
+    if (m) m.open = newState === "Y";
+    renderMeetings();
+    showToast(newState === "Y" ? "Check-in reopened." : "Check-in closed.");
+  } catch(e){ clearBtnLoading(btn); showToast(e.message, true); }
+}
+
+function showQr(code, title){
+  const base = (DATA && DATA.checkinBase) || API_URL;
+  const url = base + "?page=checkin&code=" + encodeURIComponent(code);
+  document.getElementById("qrMeetingTitle").textContent = title;
+  document.getElementById("qrCodeText").textContent = code;
+  document.getElementById("qrImg").src = "https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=2&data=" + encodeURIComponent(url);
+  const link = document.getElementById("qrLink");
+  link.href = url; link.textContent = url;
+  const overlay = document.getElementById("qrOverlay");
+  overlay.classList.add("show");
+  // Force the view to the top of the embed — staggered retries for iframe hosts
+  [0, 150, 400].forEach(ms => setTimeout(() => {
+    window.scrollTo(0, 0);
+    overlay.scrollIntoView({ block: "start" });
+  }, ms));
+}
+function closeQr(){ document.getElementById("qrOverlay").classList.remove("show"); }
+
+/* Custom confirm() replacement — real window.confirm() is silently a no-op
+   inside Wix's sandboxed embed iframe, which looks exactly like "the button
+   does nothing." This shows an in-page modal and resolves true/false instead. */
+let confirmResolver = null;
+function showConfirm(message){
+  document.getElementById("confirmMessage").textContent = message;
+  document.getElementById("confirmOverlay").classList.add("show");
+  return new Promise(resolve => { confirmResolver = resolve; });
+}
+function resolveConfirm(result){
+  document.getElementById("confirmOverlay").classList.remove("show");
+  if (confirmResolver){ confirmResolver(result); confirmResolver = null; }
+}
+document.getElementById("confirmCancelBtn").addEventListener("click", () => resolveConfirm(false));
+document.getElementById("confirmOkBtn").addEventListener("click", () => resolveConfirm(true));
+document.getElementById("confirmOverlay").addEventListener("click", e => { if (e.target.id === "confirmOverlay") resolveConfirm(false); });
+
+document.addEventListener("keydown", e => {
+  if (e.key !== "Escape") return;
+  if (document.getElementById("confirmOverlay").classList.contains("show")) { resolveConfirm(false); return; }
+  closeQr();
+});
+
+/* ---------------- attendance analysis ---------------- */
+function renderAttendance(){
+  const body = document.getElementById("attBody");
+  const summary = document.getElementById("attSummary");
+  const q = document.getElementById("attSearch").value.trim().toLowerCase();
+  const filter = document.getElementById("attFilter").value;
+  const meetings = DATA.meetings || [];
+  const total = meetings.length;
+  body.innerHTML = "";
+
+  if (!total){
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--ink-faint);padding:30px">No meetings yet — attendance stats will appear once you run one.</td></tr>';
+    summary.textContent = "";
+    return;
+  }
+
+  // build per-member attendance from the meetings data
+  const stats = (DATA.roster || []).map(m => {
+    let attended = 0, lastSeen = null;
+    meetings.forEach(mtg => {
+      if ((mtg.attendees || []).some(a => String(a.studentNumber) === String(m.studentNumber))){
+        attended++;
+        const d = parseDay(mtg.date);
+        if (!isNaN(d) && (!lastSeen || d > lastSeen)) lastSeen = d;
+      }
+    });
+    return {
+      ...m,
+      attended,
+      missed: total - attended,
+      rate: attended / total,
+      lastSeen
+    };
+  });
+
+  stats.sort((a, b) => a.rate - b.rate || b.missed - a.missed);   // worst attendance first
+
+  const filtered = stats
+    .filter(s => !q || (s.name + " " + s.studentNumber).toLowerCase().includes(q))
+    .filter(s => {
+      if (filter === "low") return s.rate < 0.5;
+      if (filter === "mid") return s.rate >= 0.5 && s.rate < 0.75;
+      if (filter === "zero") return s.attended === 0;
+      return true;
+    });
+
+  filtered.forEach(s => {
+    const pct = Math.round(s.rate * 100);
+    const color = s.rate < 0.5 ? "var(--red)" : s.rate < 0.75 ? "var(--gold-deep)" : "var(--green)";
+    const barColor = s.rate < 0.5 ? "linear-gradient(90deg,#d66a70,var(--red))"
+                   : s.rate < 0.75 ? "linear-gradient(90deg,var(--gold-bright),var(--gold))"
+                   : "linear-gradient(90deg,#3fae78,var(--green))";
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+      '<td><b>' + esc(s.name) + '</b>' + (s.attended === 0 ? ' <span class="status-pill denied">Never attended</span>' : '') + '</td>' +
+      '<td class="mono">#' + esc(s.studentNumber) + '</td>' +
+      '<td class="mono" style="color:var(--green)">' + s.attended + ' / ' + total + '</td>' +
+      '<td class="mono" style="color:' + (s.missed > 0 ? 'var(--red)' : 'var(--ink-faint)') + '">' + s.missed + '</td>' +
+      '<td><div class="mini-bar"><i style="width:' + pct + '%;background:' + barColor + '"></i></div>' +
+        '<span style="font-family:\'Spline Sans Mono\',monospace;font-size:.72rem;font-weight:600;color:' + color + '">' + pct + '%</span></td>' +
+      '<td class="mono" style="color:var(--ink-soft)">' + (s.lastSeen ? s.lastSeen.toLocaleDateString("en-US",{month:"short",day:"numeric"}) : "—") + '</td>';
+    body.appendChild(tr);
+  });
+
+  if (!filtered.length){
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--ink-faint);padding:30px">Nothing matches.</td></tr>';
+  }
+
+  const low = stats.filter(s => s.rate < 0.5).length;
+  const never = stats.filter(s => s.attended === 0).length;
+  summary.textContent = total + " meeting" + (total === 1 ? "" : "s") + " held · " +
+    low + " member" + (low === 1 ? "" : "s") + " below 50% attendance · " +
+    never + " never attended";
+}
+
+/* ---------------- misc ---------------- */
+function switchTab(name){
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
+  document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("active", p.id === "tab-" + name));
+}
+let toastTimer;
+function showToast(text, isErr){
+  const t = document.getElementById("toast");
+  t.textContent = text;
+  t.className = "toast show" + (isErr ? " err" : "");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 3200);
+}
+function val(id){ return document.getElementById(id).value.trim(); }
+function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+/* Safely embed a JS string value inside an inline onclick attribute.
+   JSON.stringify handles quotes/backslashes; &quot; keeps the HTML attribute intact. */
+function jsAttr(v){ return JSON.stringify(String(v ?? "")).replace(/"/g,'&quot;'); }
+function fmtHrs(n){ return (Math.round(Number(n) * 4) / 4).toString(); }
+/* Date-only strings anchor to local noon; full timestamps parse as-is. */
+function parseDay(d){
+  const s = String(d ?? "");
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? new Date(s + "T12:00:00") : new Date(s);
+}
+function fmtDate(d){
+  const dt = parseDay(d);
+  if (isNaN(dt)) return String(d ?? "");
+  return dt.toLocaleDateString("en-US",{ month:"short", day:"numeric" });
+}
+
+/* ---------------- init ---------------- */
+if (PIN){
+  document.getElementById("gateSub").textContent = "Re-checking your session…";
+  apiCall({ action:"officerData", pin: PIN }).then(data => {
+    if (data.success){ DATA = data; showDashboard(); }
+    else lock();
+  }).catch(() => lock());
+}
+</script>
+</body>
+</html>
